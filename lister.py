@@ -10,9 +10,6 @@ from tkinter.filedialog import askopenfilename
 from openpyxl import load_workbook
 
 import os
-import shutil
-import random
-import threading
 
 from time import time, sleep
 from datetime import datetime, timedelta
@@ -118,7 +115,6 @@ class Application(Frame):
         self.sep_c.grid(row=7, column=0, columnspan=3, padx=5, pady=5, sticky='NSEW')
         
         self.start.grid(row=8, column=0, columnspan=3, padx=5, pady=0, sticky='NSEW')
-        # self.reset.grid(row=8, column=2, columnspan=1, padx=5, pady=0, sticky='NSEW')
 
         self.sep_d.grid(row=9, column=0, columnspan=3, padx=5, pady=5, sticky='NSEW')
 
@@ -132,11 +128,6 @@ class Application(Frame):
         self.next.grid(row=11, column=0, columnspan=1, padx=5, pady=0, sticky='NSEW')
         self.prev.grid(row=11, column=1, columnspan=1, padx=5, pady=0, sticky='NSEW')
         self.restart.grid(row=11, column=2, columnspan=1, padx=5, pady=0, sticky='NSEW')
-
-        # self.gameType.grid(row=0, column=0, padx=10, pady=(5,10), sticky='NSEW')
-        # self.openType.grid(row=0, column=0, padx=(200,5), pady=(5,10), sticky='NSEW')
-        
-        # self.typeOptions.grid(row=7, column=0, columnspan=3, padx=5, pady=5, sticky='NSEW')
 
         self.sep_e.grid(row=12, column=0, columnspan=3, padx=5, pady=5, sticky='NSEW')
         
@@ -384,82 +375,7 @@ class Application(Frame):
                     break
  
     def restartMoves(self):
-        pass 
-
-    def startRandomizeProcess(self):
-        ''' start copy process
-        '''
-
-        self.processControl(1)
-        
-        sourceFiles = []
-        sourceFolders = []
-
-        for folder, subs, files in os.walk(self.source):
-
-            for file in files:
-                sourceFolders.append(folder)
-                sourceFiles.append(os.path.join(folder, file))
-
-        random.shuffle(sourceFiles)
-        ctr = 0
-
-        for src in sourceFiles:
-
-            ctr += 1
-
-            track = src.split('\\')[-1]
-
-            if len(track.split('-')) == 3:
-                track_name = track.split('-')[2]
-                if track.startswith('A'):
-                    start = 'B'
-                else:
-                    start = 'A'
-
-            elif len(track.split('-')) == 2:
-                track_name = track.split('-')[1]
-                if track.startswith('A'):
-                    start = 'B'
-                else:
-                    start = 'A'
-
-            else:
-                 track_name = track
-                 start = 'A'
-
-            new_file_name = f'{start}{ctr:03d}-{track_name}'
-
-            if os.path.exists(src):
-                
-                ''' copy file to new name
-                '''
-                shutil.copy(src, os.path.join(self.source, new_file_name))
-                
-                ''' remove file name
-                '''
-                os.remove(src)
-            else:
-                print('Not found')
-
-        self.processControl(0)
-        self.progress_bar.stop()
-
-        messagebox.showinfo("Files randomized", f"Music files randomized.")
-        
-    def checkFolders(self):
-        ''' check if folders are selected
-        '''
-
-        if self.source == "":
-            messagebox.showerror("Source not selected", "Source folder not yet selected.")
-            return False
-
-        if len(os.listdir(self.source)) == 0:
-            messagebox.showerror("Source empty", "Source folder is empty.")
-            return False
-
-        return True
+        messagebox.showinfo("Not available", "This function is not available at this time.") 
 
     def processControl(self, mode):
         ''' enable/disable buttons as needed
@@ -473,8 +389,6 @@ class Application(Frame):
             self.restart["state"] = NORMAL
             self.showAll["state"] = NORMAL
 
-            # self.progress_bar.start()
-
         else:
             
             # enable all buttons
@@ -483,8 +397,6 @@ class Application(Frame):
             self.restart["state"] = DISABLED
             self.showAll["state"] = DISABLED
 
-            # self.progress_bar.stop()
-            # sleep(5)
 
     def resetProcess(self):
         ''' reset labels, lists and flags
@@ -504,7 +416,7 @@ root.title("RANDOMIZE UTILITY")
 wh = 440
 ww = 420
 
-# root.resizable(height=False, width=False)
+root.resizable(height=False, width=False)
 
 root.minsize(ww, wh)
 root.maxsize(ww, wh)
