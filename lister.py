@@ -33,9 +33,11 @@ class Application(Frame):
         self.pointer = 0
         self.identifier = StringVar()
         self.sheet = StringVar()
+        self.sheetId = StringVar()
         self.allMoves = []
         self.showFlag = IntVar()
         self.sheetsList = ['No Selection']
+        self.sheetIdsList = ['No Selection']
 
         # Create main frame
         self.main_container.grid(column=0, row=0, sticky=(N,S,E,W))
@@ -70,14 +72,17 @@ class Application(Frame):
         self.subLabelC = Label(self.main_container, text="The files may be actual games or just openings. ", style="S.TLabel" )
 
         self.sourceFolder = LabelFrame(self.main_container, text=' FILE OPTIONS ', style="O.TLabelframe")
-        self.selectSource = Button(self.sourceFolder, text="SELECT", style="B.TButton", command=self.setSource)
+        self.selectSource = Button(self.sourceFolder, text="NAME", style="B.TButton", command=self.setSource)
         self.sourceLabel = Label(self.sourceFolder, text="None", style="B.TLabel" )
-        self.selectSheet = OptionMenu(self.sourceFolder, self.sheet, *self.sheetsList)
-        self.idLabel = Label(self.sourceFolder, text="   IDENTIFIER  ", style="G.TLabel" )
+        self.sheetLabel = Label(self.sourceFolder, text="   SHEETS  ", style="G.TLabel" )
+        self.selectSheet = OptionMenu(self.sourceFolder, self.sheet, *self.sheetsList, command=self.getSheetIdsList)
+        self.idLabel = Label(self.sourceFolder, text="   IDENTIFIERS  ", style="G.TLabel" )
         self.id = Entry(self.sourceFolder, textvariable=self.identifier, width="5")
+        self.idList = OptionMenu(self.sourceFolder, self.sheetId, *self.sheetIdsList)
 
         self.sep_s = Separator(self.sourceFolder, orient=HORIZONTAL)
         self.sep_t = Separator(self.sourceFolder, orient=HORIZONTAL)
+        self.sep_u = Separator(self.sourceFolder, orient=HORIZONTAL)
 
         # self.whiteFrame = LabelFrame(self.main_container, text=' WHITE ', style="O.TLabelframe")
         # self.whiteMove = Label(self.whiteFrame, text=" ", style="L.TLabel" )
@@ -89,7 +94,7 @@ class Application(Frame):
         # self.prev = Button(self.main_container, text="PREV", style="B.TButton", command=self.getPrevMove)
         # self.restart = Button(self.main_container, text="RESTART", style="B.TButton", command=self.restartMoves)
 
-        self.typeOptions = LabelFrame(self.main_container, text=' FILE TYPE ', style="O.TLabelframe")
+        self.typeOptions = LabelFrame(self.sourceFolder, text=' FILE TYPE ', style="O.TLabelframe")
         self.gameType = Radiobutton(self.typeOptions, text="Complete Games ", style="B.TRadiobutton", variable=self.ftype, value=0)
         self.openType = Radiobutton(self.typeOptions, text="Opening moves ", style="B.TRadiobutton", variable=self.ftype, value=1)
 
@@ -112,20 +117,30 @@ class Application(Frame):
 
         self.selectSource.grid(row=0, column=0, padx=5, pady=5, sticky='NSEW')
         self.sourceLabel.grid(row=0, column=1, padx=5, pady=5, sticky='NSEW')
+
         self.sep_s.grid(row=1, column=0, columnspan=3, padx=5, pady=5, sticky='NSEW')
-        self.selectSheet.grid(row=2, column=0, columnspan=3, padx=5, pady=5, sticky='NSEW')
+        
+        self.gameType.grid(row=0, column=0, padx=(20,5), pady=(5,10), sticky='NSEW')
+        self.openType.grid(row=0, column=1, padx=(80,5), pady=(5,10), sticky='NSEW')
+        self.typeOptions.grid(row=1, column=0, columnspan=3, padx=5, pady=5, sticky='NSEW')
+        
         self.sep_t.grid(row=3, column=0, columnspan=3, padx=5, pady=5, sticky='NSEW')
-        self.idLabel.grid(row=4, column=0, padx=5, pady=(5,10), sticky='NSEW')
-        self.id.grid(row=4, column=1, padx=5, pady=(5,10), sticky='NSEW')
+        
+        self.sheetLabel.grid(row=4, column=0, columnspan=3, padx=5, pady=5, sticky='NSEW')
+        self.selectSheet.grid(row=4, column=1, columnspan=3, padx=5, pady=5, sticky='NSEW')
+        
+        self.sep_u.grid(row=5, column=0, columnspan=3, padx=5, pady=5, sticky='NSEW')
+        
+        self.idLabel.grid(row=6, column=0, padx=5, pady=(5,10), sticky='NSEW')
+        self.idList.grid(row=6, column=1, padx=5, pady=(5,10), sticky='NSEW')
+        # self.id.grid(row=6, column=1, padx=5, pady=(5,10), sticky='NSEW')
+        
         self.sourceFolder.grid(row=6, column=0, columnspan=3, padx=5, pady=5, sticky='NSEW')        
 
-        self.gameType.grid(row=0, column=0, padx=(20,5), pady=5, sticky='NSEW')
-        self.openType.grid(row=0, column=1, padx=(80,5), pady=5, sticky='NSEW')
-        self.typeOptions.grid(row=7, column=0, columnspan=3, padx=5, pady=5, sticky='NSEW')
-
-        self.sep_c.grid(row=8, column=0, columnspan=3, padx=5, pady=5, sticky='NSEW')
+        self.sep_c.grid(row=7, column=0, columnspan=3, padx=5, pady=5, sticky='NSEW')
         
-        self.start.grid(row=9, column=0, columnspan=2, padx=5, pady=0, sticky='NSEW')
+        self.start.grid(row=9, column=0, columnspan=1, padx=5, pady=0, sticky='NSEW')
+        self.reset.grid(row=9, column=1, columnspan=1, padx=5, pady=0, sticky='NSEW')
         self.exit.grid(row=9, column=2, columnspan=1, padx=5, pady=0, sticky='NSEW')
         
         self.sep_d.grid(row=10, column=0, columnspan=3, padx=5, pady=5, sticky='NSEW')
@@ -155,12 +170,15 @@ class Application(Frame):
 
         pathname = askopenfilename()
 
-        if self.source.endswith(".xlsx") or self.source.endswith(".xls"):
-            messagebox.showerror("Invalid file selected", "Invalid file type was selected. Please select again.")
-        else:
-            self.sourceLabel["text"] = pathname
-            self.source = pathname
-            self.getSheetList()
+        try:
+            if self.source.endswith(".xlsx") or self.source.endswith(".xls"):
+                messagebox.showerror("Invalid file selected", "Invalid file type was selected. Please select again.")
+            else:
+                self.sourceLabel["text"] = pathname
+                self.source = pathname
+                self.getSheetList()
+        except:
+            pass
 
     def getSheetList(self):
 
@@ -175,26 +193,100 @@ class Application(Frame):
         menu.delete(0, 'end')
 
         for sh in self.sheetsList:
-            menu.add_command(label=sh.title, command=lambda value=sh.title: self.sheet.set(value))
+            menu.add_command(label=sh.title, command=lambda value=sh.title: self.getSheetIdsList(value))
+
+
+    def getSheetIdsList(self, sheet):
+
+        self.sheet.set(sheet)
+        if self.ftype.get() == 0:
+            self.getGameIds(sheet)
+        else:
+            self.getOpeningIds(sheet)
+
+        menu = self.idList['menu']
+        menu.delete(0, 'end')
+
+        for id in self.sheetIdsList:
+            menu.add_command(label=id, command=lambda value=id: self.sheetId.set(value))
+
+
+    def getOpeningIds(self, sheet):
+
+        wb = load_workbook(self.source)
+        ws = wb[sheet]
+
+        cola = ['A', 'D', 'G', 'J', 'M', 'P', 'S', 'V']
+
+        self.sheetIdsList = []
+
+        count = 1
+        eol = False
+        
+        while True:
+            
+            for col in cola:
+                
+                cell = col + str(count)
+                
+                if ws[cell].value == 'END':
+                    eol = True
+                    break
+                    
+                if ws[cell].value:
+                    self.sheetIdsList.append(ws[cell].value)
+                
+            if eol:
+                break
+                
+            count += 21
+
+    def getGameIds(self, sheet):
+        
+        wb = load_workbook(self.source)
+        
+        ws = wb[sheet]
+
+        cola = ['A', 'D', 'G', 'J', 'M', 'P', 'S', 'V']
+
+        self.sheetIdsList = []
+
+        count = 1
+        
+        for col in cola:
+            
+            cell = col + str(count)
+
+            if ws[cell].value:
+                self.sheetIdsList.append(ws[cell].value)
+
 
     def startGame(self):
 
-        if self.find_qualifier(self.identifier.get()):
-            messagebox.showinfo("Game found", "Game found. Press Next or Prev to walk thru the moves.")
-            self.displayMovesPanel()
-            self.processControl(1)
-        else:
-            messagebox.showerror("Identifier not found", "Identifier entered was not found. Please enter again.")
+        if self.sheet.get():
+            pass
+        else: 
+            messagebox.showerror("Select sheet", "Please select sheet from workbook.")
+            return 
 
+        if self.sheetId.get():
+            pass
+        else: 
+            messagebox.showerror("Select sheet ID", "Please select sheet ID from worksheet.")
+            return 
 
-    def find_qualifier(self, tag):
+        self.loadAllMoves()
+        self.displayMovesPanel()
+        self.processControl(1)
+
+    def loadAllMoves(self):
 
         if self.ftype.get() == 0:
-            return self.find_game_qualifier(tag)
+            return self.loadGameMoves()
         else:
-            return self.find_open_qualifier(tag)
-
-    def find_game_qualifier(self, tag):
+            return self.loadOpenMoves()
+        
+    def loadGameMoves(self):
 
         wb = load_workbook(self.source)
         ws = wb[self.sheet.get()]
@@ -208,7 +300,7 @@ class Application(Frame):
             
             cell = ca + '1'
             
-            if ws[cell].value == tag:    
+            if ws[cell].value == self.sheetId.get():    
                 found_tag = True 
 
                 self.allMoves = []
@@ -238,7 +330,7 @@ class Application(Frame):
 
         return found_tag 
 
-    def find_open_qualifier(self, tag):
+    def loadOpenMoves(self):
 
         wb = load_workbook(self.source)
         ws = wb[self.sheet.get()]
@@ -256,7 +348,7 @@ class Application(Frame):
                     
                 cell = ca + str(count)
 
-                if ws[cell].value == tag:    
+                if ws[cell].value == self.sheetId.get():    
 
                     found_tag = True 
 
@@ -364,8 +456,6 @@ class Application(Frame):
 
     def displayMovesPanel(self):
 
-        tag = self.identifier.get()
-
         self.popMoves = Toplevel(self.main_container)
         self.popMoves.title("Moves")
 
@@ -427,13 +517,13 @@ class Application(Frame):
 
         self.pop_e.grid(row=8, column=0, columnspan=3, padx=5, pady=5, sticky="NSEW")
         
-        opening, white, black = self.get_tag(tag)
+        opening, white, black = self.get_tag(self.sheetId.get())
 
         self.popOpening["text"] = opening
         self.popPlayers["text"] = white + " vs. " + black
 
         self.postFirstMove()
-        self.loadMoves(tag)
+        self.loadList()
         self.showFlag.set(0)
 
         ph = 200
@@ -451,7 +541,14 @@ class Application(Frame):
         self.popMoves.geometry('%dx%d+%d+%d' % (pw, ph, x, y))
 
         
-    def loadMoves(self, tag):
+    def loadList(self):
+
+        if self.ftype.get() == 0:
+            return self.loadGameList()
+        else:
+            return self.loadOpenList()
+        
+    def loadGameList(self):
 
         self.moveList.delete(0, END)
 
@@ -464,16 +561,14 @@ class Application(Frame):
 
         for ws in wb.worksheets:
         
-            got_data = False
-            
             for ca, cb in zip(cola, colb):
                 
                 cell = ca + '1'
                 
-                if ws[cell].value == tag:    
+                if ws[cell].value == self.sheetId.get():    
 
-                    got_data = True
-                    
+                    found_tag = True 
+
                     count = 2
                     
                     while True:
@@ -498,7 +593,71 @@ class Application(Frame):
                         count += 1
 
                     break
- 
+            
+            if found_tag:
+                break 
+
+
+    def loadOpenList(self):
+
+        self.moveList.delete(0, END)
+
+        wb = load_workbook(self.source)
+
+        cola = ['A', 'D', 'G', 'J', 'M', 'P', 'S', 'V']
+        colb = ['B', 'E', 'H', 'I', 'N', 'Q', 'T', 'U']
+
+        found_tag = False 
+
+        count = 1
+
+        while True:
+
+            for ws in wb.worksheets:
+            
+                for ca, cb in zip(cola, colb):
+                    
+                    cell = ca + str(count)
+                    
+                    if ws[cell].value == self.sheetId.get():
+
+                        found_tag = True 
+
+                        count += 1
+                        
+                        while True:
+                            
+                            cell = ca + str(count)
+                            
+                            if ws[cell].value:
+                                white_move = ws[cell].value
+                            else:
+                                break
+
+                            cell = cb + str(count)
+                            
+                            if ws[cell].value:
+                                black_move = ws[cell].value
+                            else:
+                                self.moveList.insert(END, white_move)
+                                break
+                            
+                            self.moveList.insert(END, white_move.ljust(6) + '  -  ' + black_move)
+
+                            count += 1
+
+                        break
+                
+                if found_tag:
+                    break 
+
+                count += 21
+
+            if found_tag:
+                break
+
+
+
     def showAllMoves(self):
 
         if self.showFlag.get() == 0:
@@ -559,7 +718,15 @@ class Application(Frame):
         self.sourceLabel["text"] = "None"
         self.source = ""
 
-        self.identifier.set('')
+        menu = self.idList['menu']
+        menu.delete(0, 'end')
+
+        menu = self.selectSheet['menu']
+        menu.delete(0, 'end')
+
+        self.sheet.set('')
+        self.sheetId.set('')
+
 
 root = Tk()
 root.title("RANDOMIZE UTILITY")
