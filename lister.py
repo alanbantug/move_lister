@@ -35,6 +35,8 @@ class Application(Frame):
         self.sheet = StringVar()
         self.sheetId = StringVar()
         self.allMoves = []
+        self.winner = IntVar()
+        self.advantage = IntVar()
         self.showFlag = IntVar()
         self.sheetsList = ['No Selection']
         self.sheetIdsList = ['No Selection']
@@ -46,7 +48,7 @@ class Application(Frame):
         Style().configure("M.TLabel", font="Courier 20 bold", height="20", foreground="blue", anchor="center")
         Style().configure("B.TLabel", font="Verdana 8", background="white", width="40")
         Style().configure("G.TLabel", font="Verdana 8")
-        Style().configure("L.TLabel", font="Courier 16 bold", anchor="center")
+        Style().configure("L.TLabel", font="Courier 20 bold", width="8")
         Style().configure("MS.TLabel", font="Verdana 10" )
         Style().configure("S.TLabel", font="Verdana 8" )
         Style().configure("G.TLabel", font="Verdana 8")
@@ -360,7 +362,10 @@ class Application(Frame):
                         cell = ca + str(line_count)
                         
                         if ws[cell].value:
-                            self.allMoves.append(ws[cell].value) 
+                            self.allMoves.append(ws[cell].value)
+                            bgColor = ws[cell].fill.fgColor.index
+                            self.checkAdvantage(bgColor)
+ 
                         else:
                             break
 
@@ -368,6 +373,9 @@ class Application(Frame):
                         
                         if ws[cell].value:
                             self.allMoves.append(ws[cell].value)
+                            bgColor = ws[cell].fill.fgColor.index
+                            self.checkAdvantage(bgColor)
+
                         else:
                             break
                         
@@ -519,15 +527,28 @@ class Application(Frame):
         
         opening, white, black = self.get_tag(self.sheetId.get())
 
-        self.popOpening["text"] = opening
+        # self.popOpening["text"] = opening
         self.popPlayers["text"] = white + " vs. " + black
 
         self.postFirstMove()
         self.loadList()
         self.showFlag.set(0)
 
-        ph = 200
-        pw = 360
+        if self.ftype.get() == 0:
+            if self.winner.get() == 1:
+                self.popOpening["text"] = opening + " (W)"
+            else: 
+                self.popOpening["text"] = opening + " (B)"
+        else:
+            if self.advantage.get() == 2:
+                self.popOpening["text"] = "White"
+            elif self.advantage.get() == 1:
+                self.popOpening["text"] = "Even"
+            else:
+                self.popOpening["text"] = "Black"
+
+        ph = 210
+        pw = 410
 
         self.popMoves.maxsize(pw, ph)
         self.popMoves.minsize(pw, ph)
@@ -553,23 +574,74 @@ class Application(Frame):
         self.moveList.delete(0, END)
 
         wb = load_workbook(self.source)
+        ws = wb[self.sheet.get()]
 
         cola = ['A', 'D', 'G', 'J', 'M', 'P', 'S', 'V']
         colb = ['B', 'E', 'H', 'I', 'N', 'Q', 'T', 'U']
         
         found_tag = False 
 
-        for ws in wb.worksheets:
+        for ca, cb in zip(cola, colb):
+            
+            cell = ca + '1'
+            
+            if ws[cell].value == self.sheetId.get():    
+
+                found_tag = True 
+
+                count = 2
+                
+                while True:
+                    
+                    cell = ca + str(count)
+                    
+                    if ws[cell].value:
+                        white_move = ws[cell].value
+                    else:
+                        self.winner.set(0)
+                        break
+
+                    cell = cb + str(count)
+                    
+                    if ws[cell].value:
+                        black_move = ws[cell].value
+                    else:
+                        self.moveList.insert(END, white_move)
+                        self.winner.set(1)
+                        break
+                    
+                    self.moveList.insert(END, white_move.ljust(6) + '  -  ' + black_move)
+
+                    count += 1
+
+                break
         
+
+    def loadOpenList(self):
+
+        self.moveList.delete(0, END)
+
+        wb = load_workbook(self.source)
+        ws = wb[self.sheet.get()]
+
+        cola = ['A', 'D', 'G', 'J', 'M', 'P', 'S', 'V']
+        colb = ['B', 'E', 'H', 'I', 'N', 'Q', 'T', 'U']
+
+        found_tag = False 
+
+        count = 1
+
+        while True:
+
             for ca, cb in zip(cola, colb):
                 
-                cell = ca + '1'
-                
-                if ws[cell].value == self.sheetId.get():    
+                cell = ca + str(count)
 
+                if ws[cell].value == self.sheetId.get():
+                    
                     found_tag = True 
 
-                    count = 2
+                    count += 1
                     
                     while True:
                         
@@ -593,70 +665,21 @@ class Application(Frame):
                         count += 1
 
                     break
-            
-            if found_tag:
-                break 
-
-
-    def loadOpenList(self):
-
-        self.moveList.delete(0, END)
-
-        wb = load_workbook(self.source)
-
-        cola = ['A', 'D', 'G', 'J', 'M', 'P', 'S', 'V']
-        colb = ['B', 'E', 'H', 'I', 'N', 'Q', 'T', 'U']
-
-        found_tag = False 
-
-        count = 1
-
-        while True:
-
-            for ws in wb.worksheets:
-            
-                for ca, cb in zip(cola, colb):
-                    
-                    cell = ca + str(count)
-                    
-                    if ws[cell].value == self.sheetId.get():
-
-                        found_tag = True 
-
-                        count += 1
-                        
-                        while True:
-                            
-                            cell = ca + str(count)
-                            
-                            if ws[cell].value:
-                                white_move = ws[cell].value
-                            else:
-                                break
-
-                            cell = cb + str(count)
-                            
-                            if ws[cell].value:
-                                black_move = ws[cell].value
-                            else:
-                                self.moveList.insert(END, white_move)
-                                break
-                            
-                            self.moveList.insert(END, white_move.ljust(6) + '  -  ' + black_move)
-
-                            count += 1
-
-                        break
-                
-                if found_tag:
-                    break 
-
-                count += 21
 
             if found_tag:
                 break
 
+            count += 21
+        
+    def checkAdvantage(self, fill):
 
+        self.advantage.set(1)
+        if fill == "FF00FF00":          # green
+            self.advantage.set(2)
+        elif fill == "FFFFFF00":        # yellow
+            self.advantage.set(1)
+        elif fill == "FF00FFFF":        # turquise
+            self.advantage.set(0)
 
     def showAllMoves(self):
 
@@ -667,9 +690,9 @@ class Application(Frame):
         else:
             self.showFlag.set(0)
             self.showAll.configure(text="SHOW ALL")
-            ph = 200
+            ph = 210
 
-        pw = 360
+        pw = 410
 
         self.popMoves.maxsize(pw, ph)
         self.popMoves.minsize(pw, ph)
