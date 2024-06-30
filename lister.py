@@ -236,7 +236,12 @@ class Application(Frame):
                     break
                     
                 if ws[cell].value:
-                    self.sheetIdsList.append(ws[cell].value)
+                    try:
+                        id = ws[cell].value + ' - ' + ws[cell].comment.text.rstrip()
+                    except:
+                        id = ws[cell].value 
+
+                    self.sheetIdsList.append(id)
                 
             if eol:
                 break
@@ -260,7 +265,13 @@ class Application(Frame):
             cell = col + str(count)
 
             if ws[cell].value:
-                self.sheetIdsList.append(ws[cell].value)
+                try:
+                    id = ws[cell].value + ' - ' + ws[cell].comment.text.rstrip()
+                except:
+                    id = ws[cell].value 
+                    
+                self.sheetIdsList.append(id)
+
 
 
     def startGame(self):
@@ -334,6 +345,7 @@ class Application(Frame):
 
     def loadOpenMoves(self):
 
+        print(self.sheetId.get())
         wb = load_workbook(self.source)
         ws = wb[self.sheet.get()]
 
@@ -350,7 +362,7 @@ class Application(Frame):
                     
                 cell = ca + str(count)
 
-                if ws[cell].value == self.sheetId.get():    
+                if ws[cell].value == self.sheetId.get()[:6]:    
 
                     found_tag = True 
 
@@ -585,7 +597,7 @@ class Application(Frame):
             
             cell = ca + '1'
             
-            if ws[cell].value == self.sheetId.get():    
+            if ws[cell].value == self.sheetId.get()[:6]:    
 
                 found_tag = True 
 
@@ -637,7 +649,7 @@ class Application(Frame):
                 
                 cell = ca + str(count)
 
-                if ws[cell].value == self.sheetId.get():
+                if ws[cell].value == self.sheetId.get()[:6]:
                     
                     found_tag = True 
 
