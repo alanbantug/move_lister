@@ -80,7 +80,10 @@ class Application(Frame):
         self.selectSheet = OptionMenu(self.sourceFolder, self.sheet, *self.sheetsList, command=self.getSheetIdsList)
         self.idLabel = Label(self.sourceFolder, text="   IDENTIFIERS  ", style="G.TLabel" )
         self.id = Entry(self.sourceFolder, textvariable=self.identifier, width="5")
-        self.idList = OptionMenu(self.sourceFolder, self.sheetId, *self.sheetIdsList)
+        # self.idList = OptionMenu(self.sourceFolder, self.sheetId, *self.sheetIdsList)
+        self.idList = Listbox(self.sourceFolder, selectmode='single', width=40, height=5)
+        self.iscroller = Scrollbar(self.sourceFolder, orient=VERTICAL, command=self.idList.yview)
+        self.idList.config(font=("Courier New", 8), yscrollcommand=self.iscroller.set)
 
         self.sep_s = Separator(self.sourceFolder, orient=HORIZONTAL)
         self.sep_t = Separator(self.sourceFolder, orient=HORIZONTAL)
@@ -134,7 +137,10 @@ class Application(Frame):
         self.sep_u.grid(row=5, column=0, columnspan=3, padx=5, pady=5, sticky='NSEW')
         
         self.idLabel.grid(row=6, column=0, padx=5, pady=(5,10), sticky='NSEW')
-        self.idList.grid(row=6, column=1, padx=5, pady=(5,10), sticky='NSEW')
+        # self.idList.grid(row=6, column=1, padx=5, pady=(5,10), sticky='NSEW')
+        self.idList.grid(row=6, column=1, columnspan=1, padx=5, pady=5, sticky='W')
+        self.iscroller.grid(row=6, column=2, columnspan=1, padx=5, pady=5, sticky='W')
+
         # self.id.grid(row=6, column=1, padx=5, pady=(5,10), sticky='NSEW')
         
         self.sourceFolder.grid(row=6, column=0, columnspan=3, padx=5, pady=5, sticky='NSEW')        
@@ -206,11 +212,15 @@ class Application(Frame):
         else:
             self.getOpeningIds(sheet)
 
-        menu = self.idList['menu']
-        menu.delete(0, 'end')
-
+        self.idList.delete(0, END)
         for id in self.sheetIdsList:
-            menu.add_command(label=id, command=lambda value=id: self.sheetId.set(value))
+            self.idList.insert(END, id)
+
+        # menu = self.idList['menu']
+        # menu.delete(0, 'end')
+
+        # for id in self.sheetIdsList:
+        #     menu.add_command(label=id, command=lambda value=id: self.sheetId.set(value))
 
 
     def getOpeningIds(self, sheet):
@@ -282,8 +292,12 @@ class Application(Frame):
             messagebox.showerror("Select sheet", "Please select sheet from workbook.")
             return 
 
-        if self.sheetId.get():
-            pass
+        # self.idList.curselection()
+        # if self.idList.get():
+        #     print(self.idList.get())
+
+        if self.idList.curselection():
+            self.sheetId.set(self.idList.get(self.idList.curselection()[0]))
         else: 
             messagebox.showerror("Select sheet ID", "Please select sheet ID from worksheet.")
             return 
@@ -597,7 +611,7 @@ class Application(Frame):
             
             cell = ca + '1'
             
-            if ws[cell].value == self.sheetId.get()[:6]:    
+            if ws[cell].value == self.sheetId.get()[:7]:    
 
                 found_tag = True 
 
@@ -753,8 +767,9 @@ class Application(Frame):
         self.sourceLabel["text"] = "None"
         self.source = ""
 
-        menu = self.idList['menu']
-        menu.delete(0, 'end')
+        self.idList.delete(0, END)
+        # menu = self.idList['menu']
+        # menu.delete(0, 'end')
 
         menu = self.selectSheet['menu']
         menu.delete(0, 'end')
@@ -768,13 +783,13 @@ root.title("MOVES LIST")
 
 # Set size
 
-wh = 410
-ww = 420
+wh = 460
+ww = 450
 
-root.resizable(height=False, width=False)
+# root.resizable(height=False, width=False)
 
-root.minsize(ww, wh)
-root.maxsize(ww, wh)
+# root.minsize(ww, wh)
+# root.maxsize(ww, wh)
 
 # Position in center screen
 
