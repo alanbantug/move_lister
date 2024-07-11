@@ -589,7 +589,7 @@ class Application(Frame):
         ws = wb[self.sheet.get()]
 
         cola = ['A', 'D', 'G', 'J', 'M', 'P', 'S', 'V']
-        colb = ['B', 'E', 'H', 'I', 'N', 'Q', 'T', 'U']
+        colb = ['B', 'E', 'H', 'K', 'N', 'Q', 'T', 'W']
         
         found_tag = False 
 
@@ -637,7 +637,7 @@ class Application(Frame):
         ws = wb[self.sheet.get()]
 
         cola = ['A', 'D', 'G', 'J', 'M', 'P', 'S', 'V']
-        colb = ['B', 'E', 'H', 'I', 'N', 'Q', 'T', 'U']
+        colb = ['B', 'E', 'H', 'K', 'N', 'Q', 'T', 'W']
 
         found_tag = False 
 
@@ -764,7 +764,7 @@ class Application(Frame):
 
 
 root = Tk()
-root.title("RANDOMIZE UTILITY")
+root.title("MOVES LIST")
 
 # Set size
 
