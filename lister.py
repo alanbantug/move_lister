@@ -48,7 +48,7 @@ class Application(Frame):
 
         # Set Label styles
         Style().configure("M.TLabel", font="Courier 20 bold", height="20", foreground="blue", anchor="center")
-        Style().configure("B.TLabel", font="Verdana 8", background="white", width="60")
+        Style().configure("B.TLabel", font="Verdana 8", background="white", width="50")
         Style().configure("G.TLabel", font="Verdana 8")
         Style().configure("L.TLabel", font="Courier 40 bold", width="8")
         Style().configure("MS.TLabel", font="Verdana 10" )
@@ -74,37 +74,38 @@ class Application(Frame):
         self.sep_h = Separator(self.main_container, orient=HORIZONTAL)
         self.sep_i = Separator(self.main_container, orient=HORIZONTAL)
         self.mainLabel = Label(self.main_container, text="MOVE LISTER", style="M.TLabel" )
-        self.subLabelA = Label(self.main_container, text="Displays chess moves listed in Excel spreadsheet in a more readable ", style="S.TLabel" )
-        self.subLabelB = Label(self.main_container, text="format for easier following instead of straining your eyes to read. ", style="S.TLabel" )
-        self.subLabelC = Label(self.main_container, text="The files may be actual games or just openings. ", style="S.TLabel" )
+        self.subLabelA = Label(self.main_container, text="Displays chess moves listed in Excel spreadsheet in a more readable format for easier following ", style="S.TLabel" )
+        self.subLabelB = Label(self.main_container, text="instead of straining your eyes to read. The files may be actual games or openings. ", style="S.TLabel" )
+        self.subLabelC = Label(self.main_container, text="", style="S.TLabel" )
 
-        self.sourceOption = LabelFrame(self.main_container, text=' FILE ', style="O.TLabelframe")
-        self.selectSource = Button(self.sourceOption, text="SOURCE", style="B.TButton", command=self.setSource)
-        self.sourceLabel = Label(self.sourceOption, text="None", style="B.TLabel" )
+        # self.sourceOption = LabelFrame(self.main_container, text=' FILE ', style="O.TLabelframe")
+        # self.selectSource = Button(self.sourceOption, text="SOURCE", style="B.TButton", command=self.setSource)
+        # self.sourceLabel = Label(self.sourceOption, text="None", style="B.TLabel" )
 
-        self.typeOptions = LabelFrame(self.main_container, text=' TYPE ', style="O.TLabelframe")
-        self.gameType = Radiobutton(self.typeOptions, text="Complete Games ", style="B.TRadiobutton", variable=self.ftype, value=0)
-        self.openType = Radiobutton(self.typeOptions, text="Opening moves ", style="B.TRadiobutton", variable=self.ftype, value=1)
+        # self.typeOptions = LabelFrame(self.main_container, text=' TYPE ', style="O.TLabelframe")
+        # self.gameType = Radiobutton(self.typeOptions, text="Complete Games ", style="B.TRadiobutton", variable=self.ftype, value=0)
+        # self.openType = Radiobutton(self.typeOptions, text="Opening moves ", style="B.TRadiobutton", variable=self.ftype, value=1)
 
-        self.sheetOptions = LabelFrame(self.main_container, text=' SHEETS ', style="O.TLabelframe")
-        self.selectSheet = OptionMenu(self.sheetOptions, self.sheet, *self.sheetsList, command=self.getSheetIdsList)
+        # self.sheetOptions = LabelFrame(self.main_container, text=' SHEETS ', style="O.TLabelframe")
+        # self.selectSheet = OptionMenu(self.sheetOptions, self.sheet, *self.sheetsList, command=self.getSheetIdsList)
 
-        self.idOptions = LabelFrame(self.main_container, text=' IDENTIFIERS ', style="O.TLabelframe")
-        self.idList = Listbox(self.idOptions, selectmode='single', width=70, height=5)
-        self.iscroller = Scrollbar(self.idOptions, orient=VERTICAL, command=self.idList.yview)
-        self.idList.config(font=("Courier New", 8), yscrollcommand=self.iscroller.set)
+        # self.idOptions = LabelFrame(self.main_container, text=' IDENTIFIERS ', style="O.TLabelframe")
+        # self.idList = Listbox(self.idOptions, selectmode='single', width=70, height=5)
+        # self.iscroller = Scrollbar(self.idOptions, orient=VERTICAL, command=self.idList.yview)
+        # self.idList.config(font=("Courier New", 8), yscrollcommand=self.iscroller.set)
 
-        self.start = Button(self.main_container, text="PLAY", style="B.TButton", command=self.startGame)
-        self.reset = Button(self.main_container, text="RESET", style="B.TButton", command=self.resetProcess)
+        # self.start = Button(self.main_container, text="PLAY", style="B.TButton", command=self.startGame)
+        # self.reset = Button(self.main_container, text="RESET", style="B.TButton", command=self.resetProcess)
         
         self.whiteFrame = LabelFrame(self.main_container, text=' WHITE ', style="O.TLabelframe")
         self.whiteMove = Label(self.whiteFrame, text=" ", style="L.TLabel" )
         self.blackFrame = LabelFrame(self.main_container, text=' BLACK ', style="O.TLabelframe")
         self.blackMove = Label(self.blackFrame, text=" ", style="L.TLabel" )
-        self.info = Button(self.main_container, text="SHOW INFO", style="B.TButton", command=self.displayMovesPanel)
         
         self.next = Button(self.main_container, text="NEXT", style="B.TButton", command=self.getNextMove)
         self.prev = Button(self.main_container, text="PREV", style="B.TButton", command=self.getPrevMove)
+        self.opt = Button(self.main_container, text="OPTIONS", style="B.TButton", command=self.displayOptions)
+        self.info = Button(self.main_container, text="SHOW INFO", style="B.TButton", command=self.displayMovesPanel)
         self.restart = Button(self.main_container, text="RESTART", style="B.TButton", command=self.restartMoves)
         self.showAll = Button(self.main_container, text="SHOW ALL", style="B.TButton", command=self.showAllMoves)
 
@@ -119,35 +120,34 @@ class Application(Frame):
 
         self.subLabelA.grid(row=2, column=0, columnspan=4, padx=5, pady=0, sticky='NSEW')
         self.subLabelB.grid(row=3, column=0, columnspan=4, padx=5, pady=0, sticky='NSEW')
-        self.subLabelC.grid(row=4, column=0, columnspan=4, padx=5, pady=0, sticky='NSEW')
 
-        self.sep_b.grid(row=5, column=0, columnspan=4, padx=5, pady=5, sticky='NSEW')
+        self.sep_b.grid(row=4, column=0, columnspan=4, padx=5, pady=5, sticky='NSEW')
 
-        self.selectSource.grid(row=0, column=0, padx=5, pady=(5,10), sticky='NSEW')
-        self.sourceLabel.grid(row=0, column=1, padx=5, pady=(5,10), sticky='NSEW')
-        self.sourceOption.grid(row=6, column=0, columnspan=4, padx=5, pady=5, sticky='NSEW')
+        # self.selectSource.grid(row=0, column=0, padx=5, pady=(5,10), sticky='NSEW')
+        # self.sourceLabel.grid(row=0, column=1, padx=5, pady=(5,10), sticky='NSEW')
+        # self.sourceOption.grid(row=5, column=0, columnspan=4, padx=5, pady=5, sticky='NSEW')
 
-        self.sep_c.grid(row=7, column=0, columnspan=4, padx=5, pady=5, sticky='NSEW')
+        # self.sep_c.grid(row=6, column=0, columnspan=4, padx=5, pady=5, sticky='NSEW')
         
-        self.gameType.grid(row=0, column=0, padx=5, pady=(5,10), sticky='NSEW')
-        self.openType.grid(row=0, column=1, padx=5, pady=(5,10), sticky='NSEW')
-        self.typeOptions.grid(row=8, column=0, columnspan=2, padx=5, pady=5, sticky='NSEW')
+        # self.gameType.grid(row=0, column=0, padx=5, pady=(5,10), sticky='NSEW')
+        # self.openType.grid(row=0, column=1, padx=5, pady=(5,10), sticky='NSEW')
+        # self.typeOptions.grid(row=7, column=0, columnspan=2, padx=5, pady=5, sticky='NSEW')
         
-        self.selectSheet.grid(row=0, column=0, columnspan=4, padx=5, pady=5, sticky='NSEW')
-        self.sheetOptions.grid(row=8, column=2, columnspan=2, padx=5, pady=5, sticky='NSEW')
+        # self.selectSheet.grid(row=0, column=0, columnspan=4, padx=5, pady=5, sticky='NSEW')
+        # self.sheetOptions.grid(row=7, column=2, columnspan=2, padx=5, pady=5, sticky='NSEW')
 
-        self.sep_d.grid(row=9, column=0, columnspan=4, padx=5, pady=5, sticky='NSEW')
+        # self.sep_d.grid(row=9, column=0, columnspan=4, padx=5, pady=5, sticky='NSEW')
                 
-        self.idList.grid(row=0, column=0, columnspan=4, padx=5, pady=5, sticky='W')
-        self.iscroller.grid(row=0, column=4, columnspan=1, padx=5, pady=5, sticky='W')
-        self.idOptions.grid(row=10, column=0, columnspan=4, padx=5, pady=5, sticky='NSEW')
+        # self.idList.grid(row=0, column=0, columnspan=4, padx=5, pady=5, sticky='W')
+        # self.iscroller.grid(row=0, column=4, columnspan=1, padx=5, pady=5, sticky='W')
+        # self.idOptions.grid(row=10, column=0, columnspan=4, padx=5, pady=5, sticky='NSEW')
 
-        self.sep_e.grid(row=11, column=0, columnspan=4, padx=5, pady=5, sticky='NSEW')
+        # self.sep_e.grid(row=11, column=0, columnspan=4, padx=5, pady=5, sticky='NSEW')
         
-        self.start.grid(row=12, column=0, columnspan=2, padx=5, pady=0, sticky='NSEW')
-        self.reset.grid(row=12, column=2, columnspan=2, padx=5, pady=0, sticky='NSEW')
+        # self.start.grid(row=12, column=0, columnspan=2, padx=5, pady=0, sticky='NSEW')
+        # self.reset.grid(row=12, column=2, columnspan=2, padx=5, pady=0, sticky='NSEW')
                 
-        self.sep_f.grid(row=13, column=0, columnspan=4, padx=5, pady=5, sticky='NSEW')
+        # self.sep_f.grid(row=13, column=0, columnspan=4, padx=5, pady=5, sticky='NSEW')
         
         self.whiteMove.grid(row=0, column=0, padx=5, pady=5, sticky="NSEW")
         self.whiteFrame.grid(row=14, column=0, columnspan=2, rowspan=1, padx=5, pady=5, sticky="NSEW")
@@ -156,13 +156,14 @@ class Application(Frame):
         self.blackFrame.grid(row=14, column=2, columnspan=2, rowspan=1, padx=5, pady=5, sticky="NSEW")
         self.prev.grid(row=15, column=0, columnspan=2, padx=5, pady=0, sticky='NSEW')
         self.next.grid(row=15, column=2, columnspan=2, padx=5, pady=0, sticky='NSEW')
-        self.info.grid(row=16, column=0, columnspan=4, padx=5, pady=0, sticky='NSEW')
+        self.opt.grid(row=16, column=0, columnspan=2, padx=5, pady=0, sticky='NSEW')
+        self.info.grid(row=16, column=2, columnspan=2, padx=5, pady=0, sticky='NSEW')
 
-        self.sep_g.grid(row=17, column=0, columnspan=4, padx=5, pady=5, sticky='NSEW')
+        self.sep_c.grid(row=17, column=0, columnspan=4, padx=5, pady=5, sticky='NSEW')
         
         self.exit.grid(row=18, column=0, columnspan=4, padx=5, pady=0, sticky='NSEW')
 
-        self.sep_h.grid(row=19, column=0, columnspan=4, padx=5, pady=5, sticky='NSEW')
+        self.sep_d.grid(row=19, column=0, columnspan=4, padx=5, pady=5, sticky='NSEW')
 
         self.progress_bar.grid(row=20, column=0, columnspan=4, padx=5, pady=0, sticky='NSEW')
 
@@ -349,7 +350,6 @@ class Application(Frame):
 
     def loadOpenMoves(self):
 
-        print(self.sheetId.get())
         wb = load_workbook(self.source)
         ws = wb[self.sheet.get()]
 
@@ -477,6 +477,81 @@ class Application(Frame):
         except:
             return self.sheet.get(), "Player 1", "Player 2"
         
+    def displayOptions(self):
+
+        self.popOpt = Toplevel(self.main_container)
+        self.popOpt.title("Options")
+
+        self.opt_a = Separator(self.popOpt, orient=HORIZONTAL)
+        self.opt_b = Separator(self.popOpt, orient=HORIZONTAL)
+        self.opt_c = Separator(self.popOpt, orient=HORIZONTAL)
+        self.opt_d = Separator(self.popOpt, orient=HORIZONTAL)
+        self.opt_e = Separator(self.popOpt, orient=HORIZONTAL)
+
+        self.optLabel = Label(self.popOpt, text="OPTIONS", style="M.TLabel" )
+
+        self.sourceOption = LabelFrame(self.popOpt, text=' FILE ', style="O.TLabelframe")
+        self.selectSource = Button(self.sourceOption, text="SOURCE", style="B.TButton", command=self.setSource)
+        self.sourceLabel = Label(self.sourceOption, text="None", style="B.TLabel" )
+
+        self.typeOptions = LabelFrame(self.popOpt, text=' TYPE ', style="O.TLabelframe")
+        self.gameType = Radiobutton(self.typeOptions, text="Games ", style="B.TRadiobutton", variable=self.ftype, value=0)
+        self.openType = Radiobutton(self.typeOptions, text="Openings ", style="B.TRadiobutton", variable=self.ftype, value=1)
+
+        self.sheetOptions = LabelFrame(self.popOpt, text=' SHEETS ', style="O.TLabelframe")
+        self.selectSheet = OptionMenu(self.sheetOptions, self.sheet, *self.sheetsList, command=self.getSheetIdsList)
+
+        self.idOptions = LabelFrame(self.popOpt, text=' IDENTIFIERS ', style="O.TLabelframe")
+        self.idList = Listbox(self.idOptions, selectmode='single', width=60, height=5)
+        self.iscroller = Scrollbar(self.idOptions, orient=VERTICAL, command=self.idList.yview)
+        self.idList.config(font=("Courier New", 8), yscrollcommand=self.iscroller.set)
+
+        self.start = Button(self.popOpt, text="PLAY", style="B.TButton", command=self.startGame)
+        self.reset = Button(self.popOpt, text="RESET", style="B.TButton", command=self.resetProcess)
+        self.exitOpt = Button(self.popOpt, text="EXIT", style="B.TButton", command=self.popOpt.destroy)
+
+        self.optLabel.grid(row=0, column=0, columnspan=4, padx=5, pady=5, sticky='NSEW')
+
+        self.opt_a.grid(row=1, column=0, columnspan=4, padx=5, pady=5, sticky='NSEW')
+        
+        self.selectSource.grid(row=0, column=0, padx=5, pady=(5,10), sticky='NSEW')
+        self.sourceLabel.grid(row=0, column=1, padx=5, pady=(5,10), sticky='NSEW')
+        self.sourceOption.grid(row=2, column=0, columnspan=4, padx=5, pady=5, sticky='NSEW')
+
+        self.opt_b.grid(row=3, column=0, columnspan=4, padx=5, pady=5, sticky='NSEW')
+        
+        self.gameType.grid(row=0, column=0, padx=5, pady=(5,10), sticky='NSEW')
+        self.openType.grid(row=0, column=1, padx=(40,5), pady=(5,10), sticky='NSEW')
+        self.typeOptions.grid(row=4, column=0, columnspan=2, padx=5, pady=5, sticky='NSEW')
+        
+        self.selectSheet.grid(row=0, column=0, columnspan=4, padx=5, pady=5, sticky='NSEW')
+        self.sheetOptions.grid(row=4, column=2, columnspan=2, padx=5, pady=5, sticky='NSEW')
+
+        self.opt_c.grid(row=5, column=0, columnspan=4, padx=5, pady=5, sticky='NSEW')
+                
+        self.idList.grid(row=0, column=0, columnspan=4, padx=5, pady=5, sticky='W')
+        self.iscroller.grid(row=0, column=4, columnspan=1, padx=5, pady=5, sticky='W')
+        self.idOptions.grid(row=6, column=0, columnspan=4, padx=5, pady=5, sticky='NSEW')
+
+        self.opt_d.grid(row=7, column=0, columnspan=4, padx=5, pady=5, sticky='NSEW')
+        
+        self.start.grid(row=8, column=0, columnspan=2, padx=5, pady=0, sticky='NSEW')
+        self.reset.grid(row=8, column=2, columnspan=2, padx=5, pady=0, sticky='NSEW')
+        self.exitOpt.grid(row=9, column=0, columnspan=4, padx=5, pady=0, sticky='NSEW')
+
+        oh = 390
+        ow = 480
+
+        self.popOpt.maxsize(ow, oh)
+        self.popOpt.minsize(ow, oh)
+
+        ws = self.popOpt.winfo_screenwidth()
+        hs = self.popOpt.winfo_screenheight()
+
+        x = (ws/2) - (ow/2)
+        y = (hs/2) - (oh/2)
+
+        self.popOpt.geometry('%dx%d+%d+%d' % (ow, oh, x, y))
 
     def displayMovesPanel(self):
 
@@ -545,7 +620,7 @@ class Application(Frame):
             else:
                 self.popOpening["text"] = "Black"
 
-        ph = 400
+        ph = 420
         pw = 360
 
         self.popMoves.maxsize(pw, ph)
@@ -788,7 +863,7 @@ root.title("MOVES LIST")
 
 # Set size
 
-wh = 660
+wh = 330
 ww = 575
 
 # root.resizable(height=False, width=False)
