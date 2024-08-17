@@ -27,14 +27,16 @@ class Application(Frame):
         # Define the source and target folder variables
 
         self.origin = os.getcwd()
-        self.source = ""
+        self.source = StringVar()
         self.target = ""
         self.initFolders = IntVar()
         self.ftype = IntVar()
         self.pointer = 0
         self.identifier = StringVar()
         self.sheet = StringVar()
+        self.sheet_saved = StringVar()
         self.sheetId = StringVar()
+        self.sheetId_saved = StringVar()
         self.gameDesc = StringVar()
         self.allMoves = []
         self.winner = IntVar()
@@ -149,23 +151,28 @@ class Application(Frame):
                 
         # self.sep_f.grid(row=13, column=0, columnspan=4, padx=5, pady=5, sticky='NSEW')
         
+        self.opt.grid(row=5, column=0, columnspan=4, padx=5, pady=0, sticky='NSEW')
+        
+        self.sep_c.grid(row=6, column=0, columnspan=4, padx=5, pady=5, sticky='NSEW')
+
         self.whiteMove.grid(row=0, column=0, padx=5, pady=5, sticky="NSEW")
-        self.whiteFrame.grid(row=14, column=0, columnspan=2, rowspan=1, padx=5, pady=5, sticky="NSEW")
+        self.whiteFrame.grid(row=7, column=0, columnspan=2, rowspan=1, padx=5, pady=5, sticky="NSEW")
         
         self.blackMove.grid(row=0, column=0, padx=5, pady=5, sticky="NSEW")
-        self.blackFrame.grid(row=14, column=2, columnspan=2, rowspan=1, padx=5, pady=5, sticky="NSEW")
-        self.prev.grid(row=15, column=0, columnspan=2, padx=5, pady=0, sticky='NSEW')
-        self.next.grid(row=15, column=2, columnspan=2, padx=5, pady=0, sticky='NSEW')
-        self.opt.grid(row=16, column=0, columnspan=2, padx=5, pady=0, sticky='NSEW')
-        self.info.grid(row=16, column=2, columnspan=2, padx=5, pady=0, sticky='NSEW')
-
-        self.sep_c.grid(row=17, column=0, columnspan=4, padx=5, pady=5, sticky='NSEW')
+        self.blackFrame.grid(row=7, column=2, columnspan=2, rowspan=1, padx=5, pady=5, sticky="NSEW")
         
-        self.exit.grid(row=18, column=0, columnspan=4, padx=5, pady=0, sticky='NSEW')
+        self.prev.grid(row=8, column=0, columnspan=2, padx=5, pady=0, sticky='NSEW')
+        self.next.grid(row=8, column=2, columnspan=2, padx=5, pady=0, sticky='NSEW')
+        self.restart.grid(row=9, column=0, columnspan=2, padx=5, pady=0, sticky='NSEW')
+        self.info.grid(row=9, column=2, columnspan=2, padx=5, pady=0, sticky='NSEW')
 
-        self.sep_d.grid(row=19, column=0, columnspan=4, padx=5, pady=5, sticky='NSEW')
+        self.sep_d.grid(row=10, column=0, columnspan=4, padx=5, pady=5, sticky='NSEW')
+        
+        self.exit.grid(row=11, column=0, columnspan=4, padx=5, pady=0, sticky='NSEW')
 
-        self.progress_bar.grid(row=20, column=0, columnspan=4, padx=5, pady=0, sticky='NSEW')
+        self.sep_e.grid(row=12, column=0, columnspan=4, padx=5, pady=5, sticky='NSEW')
+
+        self.progress_bar.grid(row=13, column=0, columnspan=4, padx=5, pady=0, sticky='NSEW')
 
         self.processControl(0)
 
@@ -174,34 +181,37 @@ class Application(Frame):
         pathname = askopenfilename()
 
         try:
-            if self.source.endswith(".xlsx") or self.source.endswith(".xls"):
+            if self.source.get().endswith(".xlsx") or self.source.get().endswith(".xls"):
                 messagebox.showerror("Invalid file selected", "Invalid file type was selected. Please select again.")
             else:
-                self.sourceLabel["text"] = pathname
-                self.source = pathname
+
+                self.source.set(pathname)
+                self.sourceLabel["text"] = self.source.get()
                 self.getSheetList()
         except:
             pass
 
     def getSheetList(self):
 
-        wb = load_workbook(self.source)
+        wb = load_workbook(self.source.get())
 
-        self.sheetsList = []
+        # self.sheetsList = []
+        self.sheetsList = ['No Selection ']
 
         for ws in wb.worksheets:
-            self.sheetsList.append(ws)
+            self.sheetsList.append(ws.title)
 
         menu = self.selectSheet['menu']
         menu.delete(0, 'end')
 
         for sh in self.sheetsList:
-            menu.add_command(label=sh.title, command=lambda value=sh.title: self.getSheetIdsList(value))
+            menu.add_command(label=sh, command=lambda value=sh: self.getSheetIdsList(value))
 
 
     def getSheetIdsList(self, sheet):
 
         self.sheet.set(sheet)
+        self.sheet_saved.set(sheet)
         if self.ftype.get() == 0:
             self.getGameIds(sheet)
         else:
@@ -213,7 +223,7 @@ class Application(Frame):
 
     def getOpeningIds(self, sheet):
 
-        wb = load_workbook(self.source)
+        wb = load_workbook(self.source.get())
         ws = wb[sheet]
 
         cola = ['A', 'D', 'G', 'J', 'M', 'P', 'S', 'V']
@@ -248,7 +258,7 @@ class Application(Frame):
 
     def getGameIds(self, sheet):
         
-        wb = load_workbook(self.source)
+        wb = load_workbook(self.source.get())
         
         ws = wb[sheet]
 
@@ -290,6 +300,8 @@ class Application(Frame):
         self.postFirstMove()
         self.processControl(1)
 
+        self.popOpt.destroy()
+
     def loadAllMoves(self):
 
         if self.ftype.get() == 0:
@@ -299,7 +311,7 @@ class Application(Frame):
         
     def loadGameMoves(self):
 
-        wb = load_workbook(self.source)
+        wb = load_workbook(self.source.get())
         ws = wb[self.sheet.get()]
 
         cola = ['A', 'D', 'G', 'J', 'M', 'P', 'S', 'V']
@@ -350,7 +362,7 @@ class Application(Frame):
 
     def loadOpenMoves(self):
 
-        wb = load_workbook(self.source)
+        wb = load_workbook(self.source.get())
         ws = wb[self.sheet.get()]
 
         cola = ['A', 'D', 'G', 'J', 'M', 'P', 'S', 'V']
@@ -455,7 +467,7 @@ class Application(Frame):
 
     def get_tag(self, tag):
         
-        wb2 = load_workbook(self.source)
+        wb2 = load_workbook(self.source.get())
         
         try:
             ws_index = wb2['Index']
@@ -548,10 +560,16 @@ class Application(Frame):
         ws = self.popOpt.winfo_screenwidth()
         hs = self.popOpt.winfo_screenheight()
 
-        x = (ws/2) - (ow/2)
+        x = (ws/2) - (ow/2) - 565
         y = (hs/2) - (oh/2)
 
         self.popOpt.geometry('%dx%d+%d+%d' % (ow, oh, x, y))
+
+        if self.source.get():
+            self.sourceLabel["text"] = self.source.get()
+            self.sheet.set(self.sheet_saved.get())
+            self.getSheetIdsList(self.sheet.get())
+
 
     def displayMovesPanel(self):
 
@@ -629,7 +647,7 @@ class Application(Frame):
         ws = self.popMoves.winfo_screenwidth()
         hs = self.popMoves.winfo_screenheight()
 
-        x = (ws/2) - (pw/2)
+        x = (ws/2) - (pw/2) + 500
         y = (hs/2) - (ph/2)
 
         self.popMoves.geometry('%dx%d+%d+%d' % (pw, ph, x, y))
@@ -646,7 +664,7 @@ class Application(Frame):
 
         self.moveList.delete(0, END)
 
-        wb = load_workbook(self.source)
+        wb = load_workbook(self.source.get())
         ws = wb[self.sheet.get()]
 
         cola = ['A', 'D', 'G', 'J', 'M', 'P', 'S', 'V']
@@ -694,7 +712,7 @@ class Application(Frame):
 
         self.moveList.delete(0, END)
 
-        wb = load_workbook(self.source)
+        wb = load_workbook(self.source.get())
         ws = wb[self.sheet.get()]
 
         cola = ['A', 'D', 'G', 'J', 'M', 'P', 'S', 'V']
@@ -784,7 +802,7 @@ class Application(Frame):
 
         print(self.sheetId.get()) 
 
-        wb = load_workbook(self.source)
+        wb = load_workbook(self.source.get())
         ws = wb[self.sheet.get()]
 
         cola = ['A', 'D', 'G', 'J', 'M', 'P', 'S', 'V']
@@ -802,7 +820,7 @@ class Application(Frame):
 
                 ws[d_cell].comment = comment
 
-                wb.save(self.source)
+                wb.save(self.source.get())
                     
 
     def hidePopup(self):
@@ -824,12 +842,14 @@ class Application(Frame):
             self.prev["state"] = NORMAL
             self.next["state"] = NORMAL
             self.info["state"] = NORMAL
+            self.restart["state"] = NORMAL
 
         else:
 
             self.prev["state"] = DISABLED
             self.next["state"] = DISABLED
             self.info["state"] = DISABLED
+            self.restart["state"] = DISABLED
 
 
     def resetProcess(self):
@@ -838,7 +858,7 @@ class Application(Frame):
         
         os.chdir(self.origin)
         self.sourceLabel["text"] = "None"
-        self.source = ""
+        self.source.set("")
 
         self.idList.delete(0, END)
 
@@ -863,7 +883,7 @@ root.title("MOVES LIST")
 
 # Set size
 
-wh = 330
+wh = 360
 ww = 575
 
 # root.resizable(height=False, width=False)
