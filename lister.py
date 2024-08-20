@@ -608,7 +608,6 @@ class Application(Frame):
 
         w_sheet, w_col, b_col = self.locateMoves(1, 7)
 
-        self.allMoves = []
         count = 2
         
         while True:
@@ -634,15 +633,12 @@ class Application(Frame):
 
             count += 1
 
-        self.pointer = 0
-
     def loadOpenList(self):
 
         self.moveList.delete(0, END)
 
         w_sheet, w_col, b_col, count = self.locateMoves(0, 6)
         
-        self.allMoves = []
         line_count = count + 1
         
         move_count = 0
@@ -669,8 +665,6 @@ class Application(Frame):
 
             line_count += 1
         
-        self.pointer = 0
-            
     def checkAdvantage(self, fill):
 
         self.advantage.set(1)
