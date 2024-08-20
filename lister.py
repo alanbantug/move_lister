@@ -238,8 +238,6 @@ class Application(Frame):
                     
                 self.sheetIdsList.append(id)
 
-
-
     def startGame(self):
 
         if self.sheet.get():
@@ -267,119 +265,109 @@ class Application(Frame):
         else:
             return self.loadOpenMoves()
         
-    def loadGameMoves(self):
+    def locateMoves(self, mode, length):
 
         wb = load_workbook(self.source.get())
         ws = wb[self.sheet.get()]
 
         cola = ['A', 'D', 'G', 'J', 'M', 'P', 'S', 'V']
         colb = ['B', 'E', 'H', 'K', 'N', 'Q', 'T', 'W']
-        
-        found_tag = False 
 
-        for ca, cb in zip(cola, colb):
-            
-            cell = ca + '1'
-            
-            if ws[cell].value == self.sheetId.get():    
-                found_tag = True 
+        found_tag = False
 
-                self.allMoves = []
-                count = 2
+        if mode:
+
+            for ca, cb in zip(cola, colb):
+                cell = ca + '1'
                 
-                while True:
-                    
+                if ws[cell].value == self.sheetId.get()[:length]:    
+                    return ws, ca, cb 
+            
+        else:
+
+            count = 1        
+            
+            while True:
+
+                for ca, cb in zip(cola, colb):
+
                     cell = ca + str(count)
+
+                    if ws[cell].value == self.sheetId.get()[:length]:    
+                        return ws, ca, cb, count 
                     
-                    if ws[cell].value:
-                        self.allMoves.append(ws[cell].value) 
-                    else:
+                    elif ws[cell].value == "END":
                         break
 
-                    cell = cb + str(count)
-                    
-                    if ws[cell].value:
-                        self.allMoves.append(ws[cell].value)
-                    else:
-                        break
-                    
-                    count += 1
-
-                self.pointer = 0
-
-                d_cell = cb + '1'
+                count += 21
                 
-                try:
-                    self.gameDesc.set(ws[d_cell].comment.text.rstrip())
-                except:
-                    self.gameDesc.set('No description')
+            
+    def loadGameMoves(self):
 
-                break 
+        w_sheet, w_col, b_col = self.locateMoves(1, 7)
 
-        return found_tag 
+        self.allMoves = []
+        count = 2
+        
+        while True:
+            
+            cell = w_col + str(count)
+            
+            if w_sheet[cell].value:
+                self.allMoves.append(w_sheet[cell].value) 
+            else:
+                break
+
+            cell = b_col + str(count)
+            
+            if w_sheet[cell].value:
+                self.allMoves.append(w_sheet[cell].value)
+            else:
+                break
+            
+            count += 1
+
+        self.pointer = 0
+
+        d_cell = b_col + '1'
+        
+        try:
+            self.gameDesc.set(w_sheet[d_cell].comment.text.rstrip())
+        except:
+            self.gameDesc.set('No description')
 
     def loadOpenMoves(self):
 
-        wb = load_workbook(self.source.get())
-        ws = wb[self.sheet.get()]
-
-        cola = ['A', 'D', 'G', 'J', 'M', 'P', 'S', 'V']
-        colb = ['B', 'E', 'H', 'K', 'N', 'Q', 'T', 'W']
+        w_sheet, w_col, b_col, count = self.locateMoves(0, 6)
         
-        found_tag = False 
-
-        count = 1
+        self.allMoves = []
+        line_count = count + 1
         
         while True:
+            
+            cell = w_col + str(line_count)
+            
+            if w_sheet[cell].value:
+                self.allMoves.append(w_sheet[cell].value)
+                bgColor = w_sheet[cell].fill.fgColor.index
+                self.checkAdvantage(bgColor)
 
-            for ca, cb in zip(cola, colb):
-                    
-                cell = ca + str(count)
+            else:
+                break
 
-                if ws[cell].value == self.sheetId.get()[:6]:    
+            cell = b_col + str(line_count)
+            
+            if w_sheet[cell].value:
+                self.allMoves.append(w_sheet[cell].value)
+                bgColor = w_sheet[cell].fill.fgColor.index
+                self.checkAdvantage(bgColor)
 
-                    found_tag = True 
+            else:
+                break
+            
+            line_count += 1 
 
-                    self.allMoves = []
-                    line_count = count + 1
-                    
-                    while True:
-                        
-                        cell = ca + str(line_count)
-                        
-                        if ws[cell].value:
-                            self.allMoves.append(ws[cell].value)
-                            bgColor = ws[cell].fill.fgColor.index
-                            self.checkAdvantage(bgColor)
- 
-                        else:
-                            break
-
-                        cell = cb + str(line_count)
-                        
-                        if ws[cell].value:
-                            self.allMoves.append(ws[cell].value)
-                            bgColor = ws[cell].fill.fgColor.index
-                            self.checkAdvantage(bgColor)
-
-                        else:
-                            break
-                        
-                        line_count += 1 
-
-                    self.pointer = 0
-
-                    break
-
-                elif ws[cell].value == "END":
-                    break
-
-            if found_tag:
-                break 
-
-            count += 1
-
-        return found_tag 
+        self.pointer = 0
     
     def postFirstMove(self):
 
@@ -529,7 +517,7 @@ class Application(Frame):
 
         Style().configure("PS.TLabel", font="Verdana 8", height="50" )
         self.popMoves = Toplevel(self.main_container)
-        self.popMoves.title("Moves")
+        self.popMoves.title(self.sheetId.get())
 
         self.pop_a = Separator(self.popMoves, orient=HORIZONTAL)
         self.pop_b = Separator(self.popMoves, orient=HORIZONTAL)
@@ -618,106 +606,71 @@ class Application(Frame):
 
         self.moveList.delete(0, END)
 
-        wb = load_workbook(self.source.get())
-        ws = wb[self.sheet.get()]
+        w_sheet, w_col, b_col = self.locateMoves(1, 7)
 
-        cola = ['A', 'D', 'G', 'J', 'M', 'P', 'S', 'V']
-        colb = ['B', 'E', 'H', 'K', 'N', 'Q', 'T', 'W']
+        self.allMoves = []
+        count = 2
         
-        found_tag = False 
-
-        for ca, cb in zip(cola, colb):
+        while True:
             
-            cell = ca + '1'
+            cell = w_col + str(count)
             
-            if ws[cell].value == self.sheetId.get()[:7]:    
-
-                found_tag = True 
-
-                count = 2
-                
-                while True:
-                    
-                    cell = ca + str(count)
-                    
-                    if ws[cell].value:
-                        white_move = ws[cell].value
-                    else:
-                        self.winner.set(0)
-                        break
-
-                    cell = cb + str(count)
-                    
-                    if ws[cell].value:
-                        black_move = ws[cell].value
-                    else:
-                        self.moveList.insert(END, '{:2d}'.format(count - 1) + '. ' + white_move)
-                        self.winner.set(1)
-                        break
-                    
-                    self.moveList.insert(END, '{:2d}'.format(count - 1) + '. ' + white_move.ljust(6) + '  -  ' + black_move)
-
-                    count += 1
-
+            if w_sheet[cell].value:
+                white_move = w_sheet[cell].value
+            else:
+                self.winner.set(0)
                 break
-        
+
+            cell = b_col + str(count)
+            
+            if w_sheet[cell].value:
+                black_move = w_sheet[cell].value
+            else:
+                self.moveList.insert(END, '{:2d}'.format(count - 1) + '. ' + white_move)
+                self.winner.set(1)
+                break
+            
+            self.moveList.insert(END, '{:2d}'.format(count - 1) + '. ' + white_move.ljust(6) + '  -  ' + black_move)
+
+            count += 1
+
+        self.pointer = 0
 
     def loadOpenList(self):
 
         self.moveList.delete(0, END)
 
-        wb = load_workbook(self.source.get())
-        ws = wb[self.sheet.get()]
-
-        cola = ['A', 'D', 'G', 'J', 'M', 'P', 'S', 'V']
-        colb = ['B', 'E', 'H', 'K', 'N', 'Q', 'T', 'W']
-
-        found_tag = False 
-
-        count = 1
+        w_sheet, w_col, b_col, count = self.locateMoves(0, 6)
+        
+        self.allMoves = []
+        line_count = count + 1
+        
+        move_count = 0
 
         while True:
-
-            for ca, cb in zip(cola, colb):
-                
-                cell = ca + str(count)
-
-                if ws[cell].value == self.sheetId.get()[:6]:
-                    
-                    found_tag = True 
-
-                    count += 1
-                    move_count = 0
-
-                    while True:
-                        
-                        cell = ca + str(count)
-                        
-                        if ws[cell].value:
-                            white_move = ws[cell].value
-                            move_count = move_count + 1
-                        else:
-                            break
-
-                        cell = cb + str(count)
-                        
-                        if ws[cell].value:
-                            black_move = ws[cell].value
-                        else:
-                            self.moveList.insert(END, '{:2d}'.format(move_count) + '. ' + white_move)
-                            break
-                        
-                        self.moveList.insert(END, '{:2d}'.format(move_count) + '. ' + white_move.ljust(6) + '  -  ' + black_move)
-
-                        count += 1
-
-                    break
-
-            if found_tag:
+            
+            cell = w_col + str(line_count)
+            
+            if w_sheet[cell].value:
+                white_move = w_sheet[cell].value
+                move_count = move_count + 1
+            else:
                 break
 
-            count += 21
+            cell = b_col + str(line_count)
+            
+            if w_sheet[cell].value:
+                black_move = w_sheet[cell].value
+            else:
+                self.moveList.insert(END, '{:2d}'.format(move_count) + '. ' + white_move)
+                break
+            
+            self.moveList.insert(END, '{:2d}'.format(move_count) + '. ' + white_move.ljust(6) + '  -  ' + black_move)
+
+            line_count += 1
         
+        self.pointer = 0
+            
     def checkAdvantage(self, fill):
 
         self.advantage.set(1)
@@ -756,8 +709,10 @@ class Application(Frame):
 
     def updateDescription(self):
 
-        print(self.sheetId.get()) 
-
+        if self.ftype.get() == 1:
+            messagebox.showerror("Update not available", "Update not available for openings at this time")
+            return 
+        
         wb = load_workbook(self.source.get())
         ws = wb[self.sheet.get()]
 
@@ -778,7 +733,6 @@ class Application(Frame):
 
                 wb.save(self.source.get())
                     
-
     def hidePopup(self):
         self.popMoves.destroy()
 
