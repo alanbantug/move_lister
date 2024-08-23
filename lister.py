@@ -202,10 +202,14 @@ class Application(Frame):
                     break
                     
                 if ws[cell].value:
+
+                    bgColor = ws[cell].fill.fgColor.index
+                    adv = self.checkAdvantage(bgColor)
+
                     try:
-                        id = ws[cell].value + ' - ' + ws[cell].comment.text.rstrip()
+                        id = ws[cell].value + ' (' + adv + ')' + ' - ' + ws[cell].comment.text.rstrip()
                     except:
-                        id = ws[cell].value 
+                        id = ws[cell].value + ' (' + adv + ')'
 
                     self.sheetIdsList.append(id)
                 
@@ -231,10 +235,14 @@ class Application(Frame):
             cell = col + str(count)
 
             if ws[cell].value:
+
+                bgColor = ws[cell].fill.fgColor.index
+                adv = self.checkAdvantage(bgColor)
+
                 try:
-                    id = ws[cell].value + ' - ' + ws[cell].comment.text.rstrip()
+                    id = ws[cell].value + ' (' + adv + ')' + ' - ' + ws[cell].comment.text.rstrip()
                 except:
-                    id = ws[cell].value 
+                    id = ws[cell].value + ' (' + adv + ')'
                     
                 self.sheetIdsList.append(id)
 
@@ -247,7 +255,7 @@ class Application(Frame):
             return 
 
         if self.idList.curselection():
-            self.sheetId.set(self.idList.get(self.idList.curselection()[0]))
+            self.sheetId.set(self.idList.get(self.idList.curselection()[0])[:6])
         else: 
             messagebox.showerror("Select sheet ID", "Please select sheet ID from worksheet.")
             return 
@@ -304,7 +312,7 @@ class Application(Frame):
             
     def loadGameMoves(self):
 
-        w_sheet, w_col, b_col = self.locateMoves(1, 7)
+        w_sheet, w_col, b_col = self.locateMoves(1, 6)
 
         self.allMoves = []
         count = 2
@@ -339,7 +347,12 @@ class Application(Frame):
     def loadOpenMoves(self):
 
         w_sheet, w_col, b_col, count = self.locateMoves(0, 6)
-        
+
+        cell = w_col + str(count)
+
+        bgColor = w_sheet[cell].fill.fgColor.index
+        self.checkAdvantage(bgColor)
+
         self.allMoves = []
         line_count = count + 1
         
@@ -349,8 +362,6 @@ class Application(Frame):
             
             if w_sheet[cell].value:
                 self.allMoves.append(w_sheet[cell].value)
-                bgColor = w_sheet[cell].fill.fgColor.index
-                self.checkAdvantage(bgColor)
 
             else:
                 break
@@ -359,8 +370,6 @@ class Application(Frame):
             
             if w_sheet[cell].value:
                 self.allMoves.append(w_sheet[cell].value)
-                bgColor = w_sheet[cell].fill.fgColor.index
-                self.checkAdvantage(bgColor)
 
             else:
                 break
@@ -575,8 +584,10 @@ class Application(Frame):
         else:
             if self.advantage.get() == 2:
                 self.popOpening["text"] = "White"
+
             elif self.advantage.get() == 1:
                 self.popOpening["text"] = "Even"
+
             else:
                 self.popOpening["text"] = "Black"
 
@@ -606,7 +617,7 @@ class Application(Frame):
 
         self.moveList.delete(0, END)
 
-        w_sheet, w_col, b_col = self.locateMoves(1, 7)
+        w_sheet, w_col, b_col = self.locateMoves(1, 6)
 
         count = 2
         
@@ -670,10 +681,13 @@ class Application(Frame):
         self.advantage.set(1)
         if fill == "FF00FF00":          # green
             self.advantage.set(2)
+            return 'W'
         elif fill == "FFFFFF00":        # yellow
             self.advantage.set(1)
+            return 'E'
         elif fill == "FF00FFFF":        # turquise
             self.advantage.set(0)
+            return 'B'
 
     def showAllMoves(self):
 
@@ -703,29 +717,59 @@ class Application(Frame):
 
     def updateDescription(self):
 
-        if self.ftype.get() == 1:
-            messagebox.showerror("Update not available", "Update not available for openings at this time")
-            return 
-        
         wb = load_workbook(self.source.get())
         ws = wb[self.sheet.get()]
 
         cola = ['A', 'D', 'G', 'J', 'M', 'P', 'S', 'V']
         colb = ['B', 'E', 'H', 'K', 'N', 'Q', 'T', 'W']
-        
-        for ca, cb in zip(cola, colb):
+
+        if self.ftype.get() == 1:
+
+            updated = False
+            count = 1        
             
-            cell = ca + '1'
-            
-            if ws[cell].value == self.sheetId.get()[:7]:    
+            while True:
 
-                d_cell = cb + '1'
+                for ca, cb in zip(cola, colb):
 
-                comment = Comment(self.popDescription.get(1.0, END), "")
+                    cell = ca + str(count)
 
-                ws[d_cell].comment = comment
+                    if ws[cell].value == self.sheetId.get()[:6]:    
 
-                wb.save(self.source.get())
+                        d_cell = cb + str(count)
+
+                        comment = Comment(self.popDescription.get(1.0, END), "")
+
+                        ws[d_cell].comment = comment
+
+                        wb.save(self.source.get())
+                        
+                        updated = True
+
+                        break                    
+                    elif ws[cell].value == "END":
+                        break
+
+                if updated:
+                    break
+
+                count += 21
+
+        else:        
+
+            for ca, cb in zip(cola, colb):
+                
+                cell = ca + '1'
+                
+                if ws[cell].value == self.sheetId.get()[:6]:    
+
+                    d_cell = cb + '1'
+
+                    comment = Comment(self.popDescription.get(1.0, END), "")
+
+                    ws[d_cell].comment = comment
+
+                    wb.save(self.source.get())
                     
     def hidePopup(self):
         self.popMoves.destroy()
