@@ -378,7 +378,7 @@ class Application(Frame):
 
         self.pointer = 0
 
-        d_cell = b_col + '1'
+        d_cell = b_col + str(count)
         
         try:
             self.gameDesc.set(w_sheet[d_cell].comment.text.rstrip())
