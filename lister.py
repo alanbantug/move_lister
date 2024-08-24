@@ -752,6 +752,8 @@ class Application(Frame):
 
                         wb.save(self.source.get())
                         
+                        self.gameDesc.set(ws[d_cell].comment.text.rstrip())
+
                         updated = True
 
                         break                    
@@ -778,7 +780,11 @@ class Application(Frame):
                     ws[d_cell].comment = comment
 
                     wb.save(self.source.get())
-                    
+
+                    self.gameDesc.set(ws[d_cell].comment.text.rstrip())
+
+
+
     def hidePopup(self):
         self.popMoves.destroy()
 
