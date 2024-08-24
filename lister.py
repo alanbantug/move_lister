@@ -377,6 +377,14 @@ class Application(Frame):
             line_count += 1 
 
         self.pointer = 0
+
+        d_cell = b_col + '1'
+        
+        try:
+            self.gameDesc.set(w_sheet[d_cell].comment.text.rstrip())
+        except:
+            self.gameDesc.set('No description')
+
     
     def postFirstMove(self):
 
