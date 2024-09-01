@@ -122,7 +122,7 @@ class Application(Frame):
         
         self.prev.grid(row=10, column=0, columnspan=2, padx=5, pady=0, sticky='NSEW')
         self.next.grid(row=10, column=2, columnspan=2, padx=5, pady=0, sticky='NSEW')
-        self.restart.grid(row=11, column=0, columnspan=2, padx=5, pady=0, sticky='NSEW')
+        self.restart.grid(row=11, column=0, columnspan=4, padx=5, pady=0, sticky='NSEW')
         
         self.sep_e.grid(row=12, column=0, columnspan=4, padx=5, pady=5, sticky='NSEW')
         
@@ -264,7 +264,7 @@ class Application(Frame):
         self.postFirstMove()
         self.processControl(1)
 
-        self.popOpt.destroy()
+        self.hideOpt()
 
     def loadAllMoves(self):
 
@@ -482,8 +482,9 @@ class Application(Frame):
         self.idList.config(font=("Courier New", 8), yscrollcommand=self.iscroller.set)
 
         self.start = Button(self.popOpt, text="PLAY", style="B.TButton", command=self.startGame)
+        self.report = Button(self.popOpt, text="REPORT", style="B.TButton", command=self.reportComments)
         self.reset = Button(self.popOpt, text="RESET", style="B.TButton", command=self.resetProcess)
-        self.exitOpt = Button(self.popOpt, text="EXIT", style="B.TButton", command=self.popOpt.destroy)
+        self.exitOpt = Button(self.popOpt, text="EXIT", style="B.TButton", command=self.hideOpt)
 
         self.selectSource.grid(row=0, column=0, padx=5, pady=(5,10), sticky='NSEW')
         self.sourceLabel.grid(row=0, column=1, padx=5, pady=(5,10), sticky='NSEW')
@@ -507,7 +508,8 @@ class Application(Frame):
         self.opt_c.grid(row=7, column=0, columnspan=4, padx=5, pady=5, sticky='NSEW')
         
         self.start.grid(row=8, column=0, columnspan=2, padx=5, pady=0, sticky='NSEW')
-        self.reset.grid(row=8, column=2, columnspan=2, padx=5, pady=0, sticky='NSEW')
+        self.report.grid(row=8, column=2, columnspan=1, padx=5, pady=0, sticky='NSEW')
+        self.reset.grid(row=8, column=3, columnspan=1, padx=5, pady=0, sticky='NSEW')
         self.exitOpt.grid(row=9, column=0, columnspan=4, padx=5, pady=0, sticky='NSEW')
 
         oh = 335
@@ -529,6 +531,7 @@ class Application(Frame):
             self.sheet.set(self.sheet_saved.get())
             self.getSheetIdsList(self.sheet.get())
 
+        self.opt["state"] = DISABLED
 
     def displayMovesPanel(self):
 
@@ -613,6 +616,7 @@ class Application(Frame):
 
         self.popMoves.geometry('%dx%d+%d+%d' % (pw, ph, x, y))
 
+        self.info["state"] = DISABLED
         
     def loadList(self):
 
@@ -784,9 +788,15 @@ class Application(Frame):
                     self.gameDesc.set(ws[d_cell].comment.text.rstrip())
 
 
-
     def hidePopup(self):
+
+        self.info["state"] = NORMAL
         self.popMoves.destroy()
+
+    def hideOpt(self):
+
+        self.opt["state"] = NORMAL
+        self.popOpt.destroy()
 
     def restartMoves(self):
 
@@ -812,6 +822,96 @@ class Application(Frame):
             self.next["state"] = DISABLED
             self.info["state"] = DISABLED
             self.restart["state"] = DISABLED
+
+
+    def reportComments(self):
+
+        if self.source.get() and self.sheet.get():
+
+            report_file = open('report.txt', 'w')
+
+            wb = load_workbook(self.source.get())
+            ws = wb[self.sheet.get()]
+
+            cola = ['A', 'D', 'G', 'J', 'M', 'P', 'S', 'V']
+            colb = ['B', 'E', 'H', 'K', 'N', 'Q', 'T', 'W']
+
+            if self.ftype.get() == 0:
+
+                for ca, cb in zip(cola, colb):
+                        
+                    cell = ca + '1'
+
+                    if ws[cell].value == 'END':
+                        break
+
+                    open_id = ws[cell].value
+
+                    if open_id:
+
+                        cell = cb + '1'
+
+                        try:
+                            report_line = open_id + ' ' + ' - '.join(ws[cell].comment.text.rstrip().split('\n'))
+                        except:
+                            report_line = open_id + ' No comment'
+
+                        report_file.write(report_line+'\n')
+
+                report_file.close()
+
+            else:
+
+                count = 1
+                eol = False
+                
+                while True:
+                    
+                    for ca, cb in zip(cola, colb):
+                        
+                        cell = ca + str(count)
+
+                        if ws[cell].value == 'END':
+                            eol = True
+                            break
+
+                        open_id = ws[cell].value
+
+                        if open_id:
+
+                            cell = cb +str(count)
+
+                            try:
+                                report_line = open_id + ' ' + ' - '.join(ws[cell].comment.text.rstrip().split('\n'))
+                            except:
+                                report_line = open_id + ' No comment'
+
+                            report_file.write(report_line+'\n')
+
+                    if eol:
+                        report_file.close()
+                        break
+                        
+                    count += 21
+
+            res = messagebox.askquestion(title="View report?", message="Do you want to view report after creation?")
+
+            if res == 'yes':
+
+                work_dir = os.getcwd()
+
+                # temp_dir = os.path.dirname('report.txt')
+
+                # os.chdir(temp_dir)
+
+                os.system(str(os.path.basename('report.txt')))
+
+                os.chdir(work_dir)
+
+
+        else:
+
+            messagebox.showerror("No source and sheet","No valid source or sheet selected for report")
 
 
     def resetProcess(self):
