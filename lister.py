@@ -696,10 +696,10 @@ class Application(Frame):
             return 'W'
         elif fill == "FFFFFF00":        # yellow
             self.advantage.set(1)
-            return 'E'
+            return 'B'
         elif fill == "FF00FFFF":        # turquise
             self.advantage.set(0)
-            return 'B'
+            return 'D'
 
     def showAllMoves(self):
 
@@ -799,6 +799,11 @@ class Application(Frame):
         self.popOpt.destroy()
 
     def restartMoves(self):
+
+        res = messagebox.askquestion(title="Restart moves?", message="Do you want to restart game/opening?")
+
+        if res == 'no':
+            return
 
         self.pointer = 0
         self.postFirstMove()
@@ -918,6 +923,11 @@ class Application(Frame):
         ''' reset labels, lists and flags
         '''
         
+        res = messagebox.askquestion(title="Reset process?", message="Do you want to reset selections?")
+
+        if res == 'no':
+            return
+
         os.chdir(self.origin)
         self.sourceLabel["text"] = "None"
         self.source.set("")
