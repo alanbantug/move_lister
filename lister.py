@@ -111,7 +111,8 @@ class Application(Frame):
 
     def gameThread(self):
         
-        os.system('python game_lister.py')
+        # os.system('python game_lister.py')
+        os.system('python C:/Users/Alan/Scripts/Code/move_lister/game_lister.py')
 
     def getOpenings(self):
 
@@ -120,7 +121,8 @@ class Application(Frame):
 
     def openThread(self):
 
-        os.system('python open_lister.py')
+        # os.system('python open_lister.py')
+        os.system('python C:/Users/Alan/Scripts/Code/move_lister/open_lister.py')
 
 root = Tk()
 root.title("MOVES LISTER")
