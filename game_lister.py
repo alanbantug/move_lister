@@ -39,9 +39,12 @@ class Application(Frame):
         self.sheetId_saved = StringVar()
         self.gameDesc = StringVar()
         self.allMoves = []
+        self.allComments = {}
         self.winner = IntVar()
         self.advantage = IntVar()
         self.showFlag = IntVar()
+        self.whiteNoteFlag = IntVar()
+        self.blackNoteFlag = IntVar()
         self.sheetsList = ['No Selection ']
         self.sheetIdsList = ['No Selection']
 
@@ -50,7 +53,7 @@ class Application(Frame):
 
         # Set Label styles
         Style().configure("M.TLabel", font="Courier 20 bold", height="20", foreground="blue", anchor="center")
-        Style().configure("B.TLabel", font="Verdana 8", background="white", width="60")
+        Style().configure("B.TLabel", font="Verdana 8", background="white", width="25")
         Style().configure("G.TLabel", font="Verdana 8")
         Style().configure("L.TLabel", font="Courier 40 bold", width="8")
         Style().configure("MS.TLabel", font="Verdana 10" )
@@ -82,7 +85,7 @@ class Application(Frame):
         self.sourceLabel = Label(self.sourceOption, text="None", style="B.TLabel" )
         self.sheetOptions = LabelFrame(self.main_container, text=' SHEETS ', style="O.TLabelframe")
         self.selectSheet = OptionMenu(self.sheetOptions, self.sheet, *self.sheetsList, command=self.getSheetIdsList)
-        self.report = Button(self.sheetOptions, text="REPORT", style="B.TButton", command=self.reportComments)
+        self.report = Button(self.main_container, text="REPORT", style="B.TButton", command=self.reportComments)
 
         self.idOptions = LabelFrame(self.main_container, text=' IDENTIFIERS ', style="O.TLabelframe")
         self.idList = Listbox(self.idOptions, selectmode='single', width=60, height=5)
@@ -91,8 +94,10 @@ class Application(Frame):
 
         self.whiteFrame = LabelFrame(self.main_container, text=' WHITE ', style="O.TLabelframe")
         self.whiteMove = Label(self.whiteFrame, text=" ", style="L.TLabel" )
+        self.whiteNote = Label(self.whiteFrame, text=" ", style="B.TLabel")
         self.blackFrame = LabelFrame(self.main_container, text=' BLACK ', style="O.TLabelframe")
         self.blackMove = Label(self.blackFrame, text=" ", style="L.TLabel" )
+        self.blackNote = Label(self.blackFrame, text=" ", style="B.TLabel")
         
         self.next = Button(self.main_container, text="NEXT", style="B.TButton", command=self.getNextMove)
         self.prev = Button(self.main_container, text="PREV", style="B.TButton", command=self.getPrevMove)
@@ -112,16 +117,16 @@ class Application(Frame):
         
         self.sep_a.grid(row=1, column=0, columnspan=4, padx=5, pady=5, sticky='NSEW')
 
-        self.selectSource.grid(row=0, column=0, padx=5, pady=(5,10), sticky='NSEW')
-        self.sourceLabel.grid(row=0, column=1, padx=5, pady=(5,10), sticky='NSEW')
-        self.sourceOption.grid(row=2, column=0, columnspan=4, padx=5, pady=5, sticky='NSEW')
+        self.selectSource.grid(row=0, column=0, padx=5, pady=(5,10), sticky='NSW')
+        self.sourceLabel.grid(row=0, column=0, padx=(100,10), pady=(5,10), sticky='NSW')
+        self.sourceOption.grid(row=2, column=0, columnspan=2, padx=5, pady=5, sticky='NSW')
+        self.selectSheet.grid(row=0, column=0, columnspan=1, padx=5, pady=5, sticky='NSEW')
+        self.selectSheet.config(width=30)
+        self.sheetOptions.grid(row=2, column=2, columnspan=1, padx=5, pady=5, sticky='NSEW')
         
         self.sep_b.grid(row=3, column=0, columnspan=4, padx=5, pady=5, sticky='NSEW')
         
-        self.selectSheet.grid(row=0, column=0, columnspan=2, padx=5, pady=5, sticky='NSEW')
-        self.selectSheet.config(width=65)
-        self.report.grid(row=0, column=2, columnspan=2, padx=5, pady=5, sticky='NSEW')
-        self.sheetOptions.grid(row=4, column=0, columnspan=4, padx=5, pady=5, sticky='NSEW')
+        self.report.grid(row=4, column=0, columnspan=4, padx=5, pady=5, sticky='NSEW')
 
         self.sep_c.grid(row=5, column=0, columnspan=4, padx=5, pady=5, sticky='NSEW')
                 
@@ -137,21 +142,23 @@ class Application(Frame):
         self.sep_e.grid(row=9, column=0, columnspan=4, padx=5, pady=5, sticky='NSEW')
         
         self.whiteMove.grid(row=0, column=0, padx=5, pady=5, sticky="NSEW")
+        self.whiteNote.grid(row=1, column=0, padx=5, pady=5, sticky="NSEW")
         self.whiteFrame.grid(row=10, column=0, columnspan=2, rowspan=1, padx=5, pady=5, sticky="NSEW")
         
         self.blackMove.grid(row=0, column=0, padx=5, pady=5, sticky="NSEW")
+        self.blackNote.grid(row=1, column=0, padx=5, pady=5, sticky="NSEW")
         self.blackFrame.grid(row=10, column=2, columnspan=2, rowspan=1, padx=5, pady=5, sticky="NSEW")
+                
+        self.prev.grid(row=12, column=0, columnspan=2, padx=5, pady=0, sticky='NSEW')
+        self.next.grid(row=12, column=2, columnspan=2, padx=5, pady=0, sticky='NSEW')
+        self.restart.grid(row=13, column=0, columnspan=2, padx=5, pady=0, sticky='NSEW')
+        self.info.grid(row=13, column=2, columnspan=2, padx=5, pady=0, sticky='NSEW')
         
-        self.prev.grid(row=11, column=0, columnspan=2, padx=5, pady=0, sticky='NSEW')
-        self.next.grid(row=11, column=2, columnspan=2, padx=5, pady=0, sticky='NSEW')
-        self.restart.grid(row=12, column=0, columnspan=2, padx=5, pady=0, sticky='NSEW')
-        self.info.grid(row=12, column=2, columnspan=2, padx=5, pady=0, sticky='NSEW')
+        self.sep_f.grid(row=14, column=0, columnspan=4, padx=5, pady=5, sticky='NSEW')
         
-        self.sep_f.grid(row=13, column=0, columnspan=4, padx=5, pady=5, sticky='NSEW')
-        
-        self.exit.grid(row=14, column=0, columnspan=4, padx=5, pady=0, sticky='NSEW')
+        self.exit.grid(row=15, column=0, columnspan=4, padx=5, pady=0, sticky='NSEW')
 
-        self.sep_g.grid(row=15, column=0, columnspan=4, padx=5, pady=5, sticky='NSEW')
+        self.sep_g.grid(row=16, column=0, columnspan=4, padx=5, pady=5, sticky='NSEW')
 
         self.progress_bar.grid(row=17, column=0, columnspan=4, padx=5, pady=0, sticky='NSEW')
 
@@ -289,8 +296,6 @@ class Application(Frame):
         self.loadGameMoves()
         self.postFirstMove()
         self.processControl(1)
-
-        # self.hideOpt()
 
     def locateMoves(self, mode, length):
 
@@ -888,13 +893,13 @@ root.title("GAMES MOVES")
 
 # Set size
 
-wh = 600
+wh = 630
 ww = 575
 
-root.resizable(height=False, width=False)
+# root.resizable(height=False, width=False)
 
-root.minsize(ww, wh)
-root.maxsize(ww, wh)
+# root.minsize(ww, wh)
+# root.maxsize(ww, wh)
 
 # Position in center screen
 
