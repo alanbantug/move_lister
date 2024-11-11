@@ -197,10 +197,7 @@ class Application(Frame):
 
         self.sheet.set(sheet)
         self.sheet_saved.set(sheet)
-        if self.ftype.get() == 0:
-            self.getGameIds(sheet)
-        else:
-            self.getOpeningIds(sheet)
+        self.getOpeningIds(sheet)
 
         self.idList.delete(0, END)
         for id in self.sheetIdsList:
@@ -244,34 +241,6 @@ class Application(Frame):
                 break
                 
             count += 21
-
-    def getGameIds(self, sheet):
-        
-        wb = load_workbook(self.source.get())
-        
-        ws = wb[sheet]
-
-        cola = ['A', 'D', 'G', 'J', 'M', 'P', 'S', 'V']
-
-        self.sheetIdsList = []
-
-        count = 1
-        
-        for col in cola:
-            
-            cell = col + str(count)
-
-            if ws[cell].value:
-
-                bgColor = ws[cell].fill.fgColor.index
-                adv = self.checkAdvantage(bgColor)
-
-                try:
-                    id = ws[cell].value + ' (' + adv + ')' + ' - ' + ws[cell].comment.text.rstrip()
-                except:
-                    id = ws[cell].value + ' (' + adv + ')'
-                    
-                self.sheetIdsList.append(id)
 
     def startGame(self):
 
@@ -327,41 +296,6 @@ class Application(Frame):
 
                 count += 21
                 
-            
-    def loadGameMoves(self):
-
-        w_sheet, w_col, b_col = self.locateMoves(1, 6)
-
-        self.allMoves = []
-        count = 2
-        
-        while True:
-            
-            cell = w_col + str(count)
-            
-            if w_sheet[cell].value:
-                self.allMoves.append(w_sheet[cell].value) 
-            else:
-                break
-
-            cell = b_col + str(count)
-            
-            if w_sheet[cell].value:
-                self.allMoves.append(w_sheet[cell].value)
-            else:
-                break
-            
-            count += 1
-
-        self.pointer = 0
-
-        d_cell = b_col + '1'
-        
-        try:
-            self.gameDesc.set(w_sheet[d_cell].comment.text.rstrip())
-        except:
-            self.gameDesc.set('No description')
-
     def loadOpenMoves(self):
 
         w_sheet, w_col, b_col, count = self.locateMoves(0, 6)
@@ -521,23 +455,17 @@ class Application(Frame):
         self.popPlayers["text"] = white + " vs. " + black
         self.popDescription.insert(INSERT, self.gameDesc.get())
 
-        self.loadList()
+        self.loadOpenList()
         self.showFlag.set(0)
 
-        if self.ftype.get() == 0:
-            if self.winner.get() == 1:
-                self.popOpening["text"] = opening + " (W)"
-            else: 
-                self.popOpening["text"] = opening + " (B)"
+        if self.advantage.get() == 2:
+            self.popOpening["text"] = "White"
+
+        elif self.advantage.get() == 1:
+            self.popOpening["text"] = "Even"
+
         else:
-            if self.advantage.get() == 2:
-                self.popOpening["text"] = "White"
-
-            elif self.advantage.get() == 1:
-                self.popOpening["text"] = "Even"
-
-            else:
-                self.popOpening["text"] = "Black"
+            self.popOpening["text"] = "Black"
 
         ph = 420
         pw = 360
@@ -555,44 +483,6 @@ class Application(Frame):
 
         self.info["state"] = DISABLED
         
-    def loadList(self):
-
-        if self.ftype.get() == 0:
-            return self.loadGameList()
-        else:
-            return self.loadOpenList()
-        
-    def loadGameList(self):
-
-        self.moveList.delete(0, END)
-
-        w_sheet, w_col, b_col = self.locateMoves(1, 6)
-
-        count = 2
-        
-        while True:
-            
-            cell = w_col + str(count)
-            
-            if w_sheet[cell].value:
-                white_move = w_sheet[cell].value
-            else:
-                self.winner.set(0)
-                break
-
-            cell = b_col + str(count)
-            
-            if w_sheet[cell].value:
-                black_move = w_sheet[cell].value
-            else:
-                self.moveList.insert(END, '{:2d}'.format(count - 1) + '. ' + white_move)
-                self.winner.set(1)
-                break
-            
-            self.moveList.insert(END, '{:2d}'.format(count - 1) + '. ' + white_move.ljust(6) + '  -  ' + black_move)
-
-            count += 1
-
     def loadOpenList(self):
 
         self.moveList.delete(0, END)
@@ -672,58 +562,37 @@ class Application(Frame):
         cola = ['A', 'D', 'G', 'J', 'M', 'P', 'S', 'V']
         colb = ['B', 'E', 'H', 'K', 'N', 'Q', 'T', 'W']
 
-        if self.ftype.get() == 1:
-
-            updated = False
-            count = 1        
-            
-            while True:
-
-                for ca, cb in zip(cola, colb):
-
-                    cell = ca + str(count)
-
-                    if ws[cell].value == self.sheetId.get()[:6]:    
-
-                        d_cell = cb + str(count)
-
-                        comment = Comment(self.popDescription.get(1.0, END), "")
-
-                        ws[d_cell].comment = comment
-
-                        wb.save(self.source.get())
-                        
-                        self.gameDesc.set(ws[d_cell].comment.text.rstrip())
-
-                        updated = True
-
-                        break                    
-                    elif ws[cell].value == "END":
-                        break
-
-                if updated:
-                    break
-
-                count += 21
-
-        else:        
+        updated = False
+        count = 1        
+        
+        while True:
 
             for ca, cb in zip(cola, colb):
-                
-                cell = ca + '1'
-                
+
+                cell = ca + str(count)
+
                 if ws[cell].value == self.sheetId.get()[:6]:    
 
-                    d_cell = cb + '1'
+                    d_cell = cb + str(count)
 
                     comment = Comment(self.popDescription.get(1.0, END), "")
 
                     ws[d_cell].comment = comment
 
                     wb.save(self.source.get())
-
+                    
                     self.gameDesc.set(ws[d_cell].comment.text.rstrip())
 
+                    updated = True
+
+                    break                    
+                elif ws[cell].value == "END":
+                    break
+
+            if updated:
+                break
+
+            count += 21
 
     def hidePopup(self):
 
@@ -773,20 +642,24 @@ class Application(Frame):
             cola = ['A', 'D', 'G', 'J', 'M', 'P', 'S', 'V']
             colb = ['B', 'E', 'H', 'K', 'N', 'Q', 'T', 'W']
 
-            if self.ftype.get() == 0:
-
+            count = 1
+            eol = False
+            
+            while True:
+                
                 for ca, cb in zip(cola, colb):
-                        
-                    cell = ca + '1'
+                    
+                    cell = ca + str(count)
 
                     if ws[cell].value == 'END':
+                        eol = True
                         break
 
                     open_id = ws[cell].value
 
                     if open_id:
 
-                        cell = cb + '1'
+                        cell = cb +str(count)
 
                         try:
                             report_line = open_id + ' ' + ' - '.join(ws[cell].comment.text.rstrip().split('\n'))
@@ -795,41 +668,11 @@ class Application(Frame):
 
                         report_file.write(report_line+'\n')
 
-                report_file.close()
-
-            else:
-
-                count = 1
-                eol = False
-                
-                while True:
+                if eol:
+                    report_file.close()
+                    break
                     
-                    for ca, cb in zip(cola, colb):
-                        
-                        cell = ca + str(count)
-
-                        if ws[cell].value == 'END':
-                            eol = True
-                            break
-
-                        open_id = ws[cell].value
-
-                        if open_id:
-
-                            cell = cb +str(count)
-
-                            try:
-                                report_line = open_id + ' ' + ' - '.join(ws[cell].comment.text.rstrip().split('\n'))
-                            except:
-                                report_line = open_id + ' No comment'
-
-                            report_file.write(report_line+'\n')
-
-                    if eol:
-                        report_file.close()
-                        break
-                        
-                    count += 21
+                count += 21
 
             res = messagebox.askquestion(title="View report?", message="Do you want to view report after creation?")
 
