@@ -9,6 +9,7 @@ from tkinter.filedialog import askopenfilename
 
 from openpyxl import load_workbook
 from openpyxl.comments import Comment
+from openpyxl.styles import PatternFill
 
 import os
 
@@ -94,10 +95,10 @@ class Application(Frame):
 
         self.whiteFrame = LabelFrame(self.main_container, text=' WHITE ', style="O.TLabelframe")
         self.whiteMove = Label(self.whiteFrame, text=" ", style="L.TLabel" )
-        self.whiteNote = Label(self.whiteFrame, text=" ", style="B.TLabel")
+        self.whiteNote = Checkbutton(self.whiteFrame, text=" Note found", style="B.TCheckbutton", variable=self.whiteNoteFlag)
         self.blackFrame = LabelFrame(self.main_container, text=' BLACK ', style="O.TLabelframe")
         self.blackMove = Label(self.blackFrame, text=" ", style="L.TLabel" )
-        self.blackNote = Label(self.blackFrame, text=" ", style="B.TLabel")
+        self.blackNote = Checkbutton(self.blackFrame, text=" Note found", style="B.TCheckbutton", variable=self.blackNoteFlag)
         
         self.next = Button(self.main_container, text="NEXT", style="B.TButton", command=self.getNextMove)
         self.prev = Button(self.main_container, text="PREV", style="B.TButton", command=self.getPrevMove)
@@ -203,10 +204,8 @@ class Application(Frame):
 
         self.sheet.set(sheet)
         self.sheet_saved.set(sheet)
-        if self.ftype.get() == 0:
-            self.getGameIds(sheet)
-        else:
-            self.getOpeningIds(sheet)
+        
+        self.getGameIds(sheet)
 
         self.idList.delete(0, END)
         for id in self.sheetIdsList:
@@ -297,7 +296,7 @@ class Application(Frame):
         self.postFirstMove()
         self.processControl(1)
 
-    def locateMoves(self, mode, length):
+    def locateMoves(self, length):
 
         wb = load_workbook(self.source.get())
         ws = wb[self.sheet.get()]
@@ -307,53 +306,40 @@ class Application(Frame):
 
         found_tag = False
 
-        if mode:
-
-            for ca, cb in zip(cola, colb):
-                cell = ca + '1'
-                
-                if ws[cell].value == self.sheetId.get()[:length]:    
-                    return ws, ca, cb 
+        for ca, cb in zip(cola, colb):
+            cell = ca + '1'
             
-        else:
-
-            count = 1        
-            
-            while True:
-
-                for ca, cb in zip(cola, colb):
-
-                    cell = ca + str(count)
-
-                    if ws[cell].value == self.sheetId.get()[:length]:    
-                        return ws, ca, cb, count 
-                    
-                    elif ws[cell].value == "END":
-                        break
-
-                count += 21
-                
+            if ws[cell].value == self.sheetId.get()[:length]:    
+                self.workSheet = ws 
+                self.whiteColumn = ca 
+                self.blackColumn = cb 
+                return True 
+        
+        return False 
             
     def loadGameMoves(self):
 
-        w_sheet, w_col, b_col = self.locateMoves(1, 6)
+        if self.locateMoves(6):
+            pass 
+        else: 
+            return 
 
         self.allMoves = []
         count = 2
         
         while True:
             
-            cell = w_col + str(count)
+            cell = self.whiteColumn + str(count)
             
-            if w_sheet[cell].value:
-                self.allMoves.append(w_sheet[cell].value) 
+            if self.workSheet[cell].value:
+                self.allMoves.append(self.workSheet[cell].value) 
             else:
                 break
 
-            cell = b_col + str(count)
+            cell = self.blackColumn + str(count)
             
-            if w_sheet[cell].value:
-                self.allMoves.append(w_sheet[cell].value)
+            if self.workSheet[cell].value:
+                self.allMoves.append(self.workSheet[cell].value)
             else:
                 break
             
@@ -361,62 +347,24 @@ class Application(Frame):
 
         self.pointer = 0
 
-        d_cell = b_col + '1'
+        d_cell = self.blackColumn + '1'
         
         try:
-            self.gameDesc.set(w_sheet[d_cell].comment.text.rstrip())
+            self.gameDesc.set(self.workSheet[d_cell].comment.text.rstrip())
         except:
             self.gameDesc.set('No description')
 
-    def loadOpenMoves(self):
-
-        w_sheet, w_col, b_col, count = self.locateMoves(0, 6)
-
-        cell = w_col + str(count)
-
-        bgColor = w_sheet[cell].fill.fgColor.index
-        self.checkAdvantage(bgColor)
-
-        self.allMoves = []
-        line_count = count + 1
-        
-        while True:
-            
-            cell = w_col + str(line_count)
-            
-            if w_sheet[cell].value:
-                self.allMoves.append(w_sheet[cell].value)
-
-            else:
-                break
-
-            cell = b_col + str(line_count)
-            
-            if w_sheet[cell].value:
-                self.allMoves.append(w_sheet[cell].value)
-
-            else:
-                break
-            
-            line_count += 1 
-
-        self.pointer = 0
-
-        d_cell = b_col + str(count)
-        
-        try:
-            self.gameDesc.set(w_sheet[d_cell].comment.text.rstrip())
-        except:
-            self.gameDesc.set('No description')
-
-    
     def postFirstMove(self):
 
         move = self.allMoves[self.pointer]
         self.whiteMove["text"] = move
         self.blackMove["text"] = ""
 
+        self.checkForComments()
+
     def getNextMove(self):
+
+        self.checkCommentNotes()
 
         if self.pointer + 1== len(self.allMoves):
             messagebox.showinfo("Last moves", "Last moves already displayed.")
@@ -431,6 +379,8 @@ class Application(Frame):
         else:
             self.whiteMove["text"] = move
             self.blackMove["text"] = ""
+
+        self.checkForComments()
 
     def getPrevMove(self):
 
@@ -451,6 +401,7 @@ class Application(Frame):
             self.whiteMove["text"] = move
             self.blackMove["text"] = ""
 
+        self.checkForComments()
 
     def get_tag(self, tag):
         
@@ -527,23 +478,13 @@ class Application(Frame):
         self.popPlayers["text"] = white + " vs. " + black
         self.popDescription.insert(INSERT, self.gameDesc.get())
 
-        self.loadList()
+        self.loadGameList()
         self.showFlag.set(0)
 
-        if self.ftype.get() == 0:
-            if self.winner.get() == 1:
-                self.popOpening["text"] = opening + " (W)"
-            else: 
-                self.popOpening["text"] = opening + " (B)"
-        else:
-            if self.advantage.get() == 2:
-                self.popOpening["text"] = "White"
-
-            elif self.advantage.get() == 1:
-                self.popOpening["text"] = "Even"
-
-            else:
-                self.popOpening["text"] = "Black"
+        if self.winner.get() == 1:
+            self.popOpening["text"] = opening + " (W)"
+        else: 
+            self.popOpening["text"] = opening + " (B)"
 
         ph = 420
         pw = 360
@@ -561,35 +502,28 @@ class Application(Frame):
 
         self.info["state"] = DISABLED
         
-    def loadList(self):
-
-        if self.ftype.get() == 0:
-            return self.loadGameList()
-        else:
-            return self.loadOpenList()
-        
     def loadGameList(self):
 
         self.moveList.delete(0, END)
 
-        w_sheet, w_col, b_col = self.locateMoves(1, 6)
+        self.locateMoves(6)
 
         count = 2
         
         while True:
             
-            cell = w_col + str(count)
+            cell = self.whiteColumn + str(count)
             
-            if w_sheet[cell].value:
-                white_move = w_sheet[cell].value
+            if self.workSheet[cell].value:
+                white_move = self.workSheet[cell].value
             else:
                 self.winner.set(0)
                 break
 
-            cell = b_col + str(count)
+            cell = self.blackColumn + str(count)
             
-            if w_sheet[cell].value:
-                black_move = w_sheet[cell].value
+            if self.workSheet[cell].value:
+                black_move = self.workSheet[cell].value
             else:
                 self.moveList.insert(END, '{:2d}'.format(count - 1) + '. ' + white_move)
                 self.winner.set(1)
@@ -599,38 +533,6 @@ class Application(Frame):
 
             count += 1
 
-    def loadOpenList(self):
-
-        self.moveList.delete(0, END)
-
-        w_sheet, w_col, b_col, count = self.locateMoves(0, 6)
-        
-        line_count = count + 1
-        
-        move_count = 0
-
-        while True:
-            
-            cell = w_col + str(line_count)
-            
-            if w_sheet[cell].value:
-                white_move = w_sheet[cell].value
-                move_count = move_count + 1
-            else:
-                break
-
-            cell = b_col + str(line_count)
-            
-            if w_sheet[cell].value:
-                black_move = w_sheet[cell].value
-            else:
-                self.moveList.insert(END, '{:2d}'.format(move_count) + '. ' + white_move)
-                break
-            
-            self.moveList.insert(END, '{:2d}'.format(move_count) + '. ' + white_move.ljust(6) + '  -  ' + black_move)
-
-            line_count += 1
-        
     def checkAdvantage(self, fill):
 
         self.advantage.set(1)
@@ -643,6 +545,75 @@ class Application(Frame):
         else:                           # turquise
             self.advantage.set(0)
             return 'D'
+
+    def checkForComments(self):
+
+        row = int(self.pointer / 2) + self.pointer % 2
+
+        ''' check for comments first
+        '''
+        if self.pointer % 2 == 0: # white move
+            w_cell = self.whiteColumn + str(row + 2) 
+
+            try:
+               temp = self.workSheet[w_cell].comment.text.rstrip()
+               self.whiteNoteFlag.set(1)
+               self.blackNoteFlag.set(0)
+
+            except Exception as e:
+
+                fgColor = self.workSheet[w_cell].fill.fgColor.index
+
+                if fgColor == "00000000":
+                    self.whiteNoteFlag.set(0)
+                    self.blackNoteFlag.set(0)
+                else:    
+                    self.whiteNoteFlag.set(1)
+                    self.blackNoteFlag.set(0)
+                    print('White 2')
+            
+        else:
+            b_cell = self.blackColumn + str(row + 1)
+
+            try:
+                temp = self.workSheet[b_cell].comment.text.rstrip()
+                self.blackNoteFlag.set(1)
+
+            except Exception as e:
+
+                fgColor = self.workSheet[b_cell].fill.fgColor.index
+
+                if fgColor == "00000000":
+                    self.blackNoteFlag.set(0)
+                else:    
+                    self.blackNoteFlag.set(1)
+
+
+    def checkCommentNotes(self):
+
+        ''' check and record comments only after black move
+        '''
+
+        wb = load_workbook(self.source.get())
+        ws = wb[self.sheet.get()]
+ 
+        if self.pointer % 2 == 1: # if black just moved
+
+            row = int(self.pointer / 2) 
+
+            cell = self.whiteColumn +  str(row + 2)
+
+            if self.whiteNoteFlag.get():
+                print('White checked ', cell)
+                ws[cell].fill = PatternFill(start_color="FFD9D9D9", end_color="FFD9D9D9", fill_type="solid")
+
+            cell = self.blackColumn +  str(row + 1)
+
+            if self.blackNoteFlag.get():
+                print('Black checked ', cell)
+                ws[cell].fill = PatternFill(start_color="FFD9D9D9", end_color="FFD9D9D9", fill_type="solid")
+
+            wb.save(self.source.get())
 
     def showAllMoves(self):
 
@@ -678,57 +649,21 @@ class Application(Frame):
         cola = ['A', 'D', 'G', 'J', 'M', 'P', 'S', 'V']
         colb = ['B', 'E', 'H', 'K', 'N', 'Q', 'T', 'W']
 
-        if self.ftype.get() == 1:
-
-            updated = False
-            count = 1        
+        for ca, cb in zip(cola, colb):
             
-            while True:
+            cell = ca + '1'
+            
+            if ws[cell].value == self.sheetId.get()[:6]:    
 
-                for ca, cb in zip(cola, colb):
+                d_cell = cb + '1'
 
-                    cell = ca + str(count)
+                comment = Comment(self.popDescription.get(1.0, END), "")
 
-                    if ws[cell].value == self.sheetId.get()[:6]:    
+                ws[d_cell].comment = comment
 
-                        d_cell = cb + str(count)
+                wb.save(self.source.get())
 
-                        comment = Comment(self.popDescription.get(1.0, END), "")
-
-                        ws[d_cell].comment = comment
-
-                        wb.save(self.source.get())
-                        
-                        self.gameDesc.set(ws[d_cell].comment.text.rstrip())
-
-                        updated = True
-
-                        break                    
-                    elif ws[cell].value == "END":
-                        break
-
-                if updated:
-                    break
-
-                count += 21
-
-        else:        
-
-            for ca, cb in zip(cola, colb):
-                
-                cell = ca + '1'
-                
-                if ws[cell].value == self.sheetId.get()[:6]:    
-
-                    d_cell = cb + '1'
-
-                    comment = Comment(self.popDescription.get(1.0, END), "")
-
-                    ws[d_cell].comment = comment
-
-                    wb.save(self.source.get())
-
-                    self.gameDesc.set(ws[d_cell].comment.text.rstrip())
+                self.gameDesc.set(ws[d_cell].comment.text.rstrip())
 
 
     def hidePopup(self):
@@ -779,63 +714,27 @@ class Application(Frame):
             cola = ['A', 'D', 'G', 'J', 'M', 'P', 'S', 'V']
             colb = ['B', 'E', 'H', 'K', 'N', 'Q', 'T', 'W']
 
-            if self.ftype.get() == 0:
-
-                for ca, cb in zip(cola, colb):
-                        
-                    cell = ca + '1'
-
-                    if ws[cell].value == 'END':
-                        break
-
-                    open_id = ws[cell].value
-
-                    if open_id:
-
-                        cell = cb + '1'
-
-                        try:
-                            report_line = open_id + ' ' + ' - '.join(ws[cell].comment.text.rstrip().split('\n'))
-                        except:
-                            report_line = open_id + ' No comment'
-
-                        report_file.write(report_line+'\n')
-
-                report_file.close()
-
-            else:
-
-                count = 1
-                eol = False
-                
-                while True:
+            for ca, cb in zip(cola, colb):
                     
-                    for ca, cb in zip(cola, colb):
-                        
-                        cell = ca + str(count)
+                cell = ca + '1'
 
-                        if ws[cell].value == 'END':
-                            eol = True
-                            break
+                if ws[cell].value == 'END':
+                    break
 
-                        open_id = ws[cell].value
+                open_id = ws[cell].value
 
-                        if open_id:
+                if open_id:
 
-                            cell = cb +str(count)
+                    cell = cb + '1'
 
-                            try:
-                                report_line = open_id + ' ' + ' - '.join(ws[cell].comment.text.rstrip().split('\n'))
-                            except:
-                                report_line = open_id + ' No comment'
+                    try:
+                        report_line = open_id + ' ' + ' - '.join(ws[cell].comment.text.rstrip().split('\n'))
+                    except:
+                        report_line = open_id + ' No comment'
 
-                            report_file.write(report_line+'\n')
+                    report_file.write(report_line+'\n')
 
-                    if eol:
-                        report_file.close()
-                        break
-                        
-                    count += 21
+            report_file.close()
 
             res = messagebox.askquestion(title="View report?", message="Do you want to view report after creation?")
 
@@ -893,8 +792,8 @@ root.title("GAMES MOVES")
 
 # Set size
 
-wh = 630
-ww = 575
+wh = 610
+ww = 590
 
 # root.resizable(height=False, width=False)
 

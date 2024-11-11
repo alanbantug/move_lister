@@ -82,37 +82,27 @@ class Application(Frame):
         self.subLabelB = Label(self.main_container, text="for easier following instead of straining your eyes to read. The files may ", style="S.TLabel" )
         self.subLabelC = Label(self.main_container, text="be actual games or openings. ", style="S.TLabel" )
 
-        self.entry_select = Button(self.main_container, text="ENTRY", style="B.TButton", command=self.enterMoves)
         self.game_select = Button(self.main_container, text="GAMES", style="B.TButton", command=self.getGames)
         self.open_select = Button(self.main_container, text="OPENINGS", style="B.TButton", command=self.getOpenings)
         self.exit = Button(self.main_container, text="EXIT", style="B.TButton", command=root.destroy)
 
         # Position widgets
-        self.mainLabel.grid(row=0, column=0, columnspan=3, padx=5, pady=5, sticky='NSEW')
+        self.mainLabel.grid(row=0, column=0, columnspan=2, padx=5, pady=5, sticky='NSEW')
         
-        self.sep_a.grid(row=1, column=0, columnspan=3, padx=5, pady=5, sticky='NSEW')
+        self.sep_a.grid(row=1, column=0, columnspan=2, padx=5, pady=5, sticky='NSEW')
 
-        self.subLabelA.grid(row=2, column=0, columnspan=3, padx=5, pady=0, sticky='NSEW')
-        self.subLabelB.grid(row=3, column=0, columnspan=3, padx=5, pady=0, sticky='NSEW')
-        self.subLabelC.grid(row=4, column=0, columnspan=3, padx=5, pady=0, sticky='NSEW')
+        self.subLabelA.grid(row=2, column=0, columnspan=2, padx=5, pady=0, sticky='NSEW')
+        self.subLabelB.grid(row=3, column=0, columnspan=2, padx=5, pady=0, sticky='NSEW')
+        self.subLabelC.grid(row=4, column=0, columnspan=2, padx=5, pady=0, sticky='NSEW')
 
-        self.sep_b.grid(row=5, column=0, columnspan=3, padx=5, pady=5, sticky='NSEW')
+        self.sep_b.grid(row=5, column=0, columnspan=2, padx=5, pady=5, sticky='NSEW')
 
-        self.entry_select.grid(row=6, column=0, columnspan=1, padx=5, pady=5, sticky='NSEW')
-        self.game_select.grid(row=6, column=1, columnspan=1, padx=5, pady=5, sticky='NSEW')
-        self.open_select.grid(row=6, column=2, columnspan=1, padx=5, pady=5, sticky='NSEW')
+        self.game_select.grid(row=6, column=0, columnspan=1, padx=5, pady=5, sticky='NSEW')
+        self.open_select.grid(row=6, column=1, columnspan=1, padx=5, pady=5, sticky='NSEW')
 
-        self.sep_c.grid(row=7, column=0, columnspan=3, padx=5, pady=5, sticky='NSEW')
+        self.sep_c.grid(row=7, column=0, columnspan=2, padx=5, pady=5, sticky='NSEW')
 
-        self.exit.grid(row=8, column=0, columnspan=3, padx=5, pady=0, sticky='NSEW')
-
-    def enterMoves(self):
-        
-        e = threading.Thread(None, self.entryThread, ())
-        e.start()
-
-    def entryThread(self):
-        os.system('python move_entry.py')
+        self.exit.grid(row=8, column=0, columnspan=2, padx=5, pady=0, sticky='NSEW')
 
     def getGames(self):
         
