@@ -46,6 +46,8 @@ class Application(Frame):
         self.showFlag = IntVar()
         self.whiteNoteFlag = IntVar()
         self.blackNoteFlag = IntVar()
+        self.whiteHasNote = IntVar()
+        self.blackHasNote = IntVar()
         self.sheetsList = ['No Selection ']
         self.sheetIdsList = ['No Selection']
 
@@ -267,7 +269,7 @@ class Application(Frame):
             cell = col + str(count)
 
             if ws[cell].value:
-
+                
                 bgColor = ws[cell].fill.fgColor.index
                 adv = self.checkAdvantage(bgColor)
 
@@ -481,10 +483,12 @@ class Application(Frame):
         self.loadGameList()
         self.showFlag.set(0)
 
-        if self.winner.get() == 1:
+        if self.advantage.get() == 2:
             self.popOpening["text"] = opening + " (W)"
-        else: 
+        elif self.advantage.get() == 1: 
             self.popOpening["text"] = opening + " (B)"
+        else:
+            self.popOpening["text"] = opening + " (D)"
 
         ph = 420
         pw = 360
@@ -506,6 +510,11 @@ class Application(Frame):
 
         self.moveList.delete(0, END)
 
+        cell = self.whiteColumn + '1'
+        
+        bgColor = self.workSheet[cell].fill.fgColor.index
+        self.checkAdvantage(bgColor)
+
         self.locateMoves(6)
 
         count = 2
@@ -517,7 +526,6 @@ class Application(Frame):
             if self.workSheet[cell].value:
                 white_move = self.workSheet[cell].value
             else:
-                self.winner.set(0)
                 break
 
             cell = self.blackColumn + str(count)
@@ -526,7 +534,6 @@ class Application(Frame):
                 black_move = self.workSheet[cell].value
             else:
                 self.moveList.insert(END, '{:2d}'.format(count - 1) + '. ' + white_move)
-                self.winner.set(1)
                 break
             
             self.moveList.insert(END, '{:2d}'.format(count - 1) + '. ' + white_move.ljust(6) + '  -  ' + black_move)
@@ -550,6 +557,9 @@ class Application(Frame):
 
         row = int(self.pointer / 2) + self.pointer % 2
 
+        self.whiteNoteFlag.set(0)
+        self.blackNoteFlag.set(0)
+
         ''' check for comments first
         '''
         if self.pointer % 2 == 0: # white move
@@ -558,7 +568,7 @@ class Application(Frame):
             try:
                temp = self.workSheet[w_cell].comment.text.rstrip()
                self.whiteNoteFlag.set(1)
-               self.blackNoteFlag.set(0)
+               self.whiteHasNote.set(1)
 
             except Exception as e:
 
@@ -566,11 +576,10 @@ class Application(Frame):
 
                 if fgColor == "00000000":
                     self.whiteNoteFlag.set(0)
-                    self.blackNoteFlag.set(0)
+                    self.whiteHasNote.set(0)
                 else:    
                     self.whiteNoteFlag.set(1)
-                    self.blackNoteFlag.set(0)
-                    print('White 2')
+                    self.whiteHasNote.set(1)
             
         else:
             b_cell = self.blackColumn + str(row + 1)
@@ -578,6 +587,7 @@ class Application(Frame):
             try:
                 temp = self.workSheet[b_cell].comment.text.rstrip()
                 self.blackNoteFlag.set(1)
+                self.blackHasNote.set(1)
 
             except Exception as e:
 
@@ -585,8 +595,10 @@ class Application(Frame):
 
                 if fgColor == "00000000":
                     self.blackNoteFlag.set(0)
+                    self.blackHasNote.set(0)
                 else:    
                     self.blackNoteFlag.set(1)
+                    self.blackHasNote.set(1)
 
 
     def checkCommentNotes(self):
@@ -603,17 +615,19 @@ class Application(Frame):
 
             cell = self.whiteColumn +  str(row + 2)
 
-            if self.whiteNoteFlag.get():
-                print('White checked ', cell)
+            update_wb = False 
+            if self.whiteNoteFlag.get() and not self.whiteHasNote.get():
                 ws[cell].fill = PatternFill(start_color="FFD9D9D9", end_color="FFD9D9D9", fill_type="solid")
+                update_wb = True
 
             cell = self.blackColumn +  str(row + 1)
 
-            if self.blackNoteFlag.get():
-                print('Black checked ', cell)
+            if self.blackNoteFlag.get() and not self.blackHasNote.get():
                 ws[cell].fill = PatternFill(start_color="FFD9D9D9", end_color="FFD9D9D9", fill_type="solid")
+                update_wb = True
 
-            wb.save(self.source.get())
+            if update_wb:
+                wb.save(self.source.get())
 
     def showAllMoves(self):
 
@@ -795,10 +809,10 @@ root.title("GAMES MOVES")
 wh = 610
 ww = 590
 
-# root.resizable(height=False, width=False)
+root.resizable(height=False, width=False)
 
-# root.minsize(ww, wh)
-# root.maxsize(ww, wh)
+root.minsize(ww, wh)
+root.maxsize(ww, wh)
 
 # Position in center screen
 
